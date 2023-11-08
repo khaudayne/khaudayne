@@ -1,8 +1,9 @@
 # Hàm kiểm tra trạng thái kết thúc của bàn cờ
+## turnXorO string chứa 'x' hoặc 'o' ( lượt tương ứng ), x, y là tọa độ của điểm vừa chọn
 def checkEnd(turnXorO, x, y):
     # Kiểm tra điều kiện thắng của x
     if(turnXorO == 'x'):
-        # Kiểm tra các hàng chứa 5 ô x liên tiếp
+        # Kiểm tra hàng chứa 5 ô x liên tiếp
         count = 1
         d = 1
         while y + d < coL and chessT[x][y + d] == 'x':
@@ -17,6 +18,7 @@ def checkEnd(turnXorO, x, y):
                 return True
             d += 1
 
+        # Kiểm tra cột chứa 5 ô x liên tiếp
         count = 1
         d = 1
         while x + d < roW and chessT[x + d][y] == 'x':
@@ -31,6 +33,7 @@ def checkEnd(turnXorO, x, y):
                 return True
             d += 1
 
+        # Kiểm tra đường chéo C1 chứa 5 ô x liên tiếp
         count = 1
         d = 1
         while x + d < roW and y + d < coL and chessT[x + d][y + d] == 'x':
@@ -44,7 +47,8 @@ def checkEnd(turnXorO, x, y):
             if count == 5:
                 return True
             d += 1
-        
+
+        # Kiểm tra đường chéo C2 chứa 5 ô x liên tiếp
         count = 1
         d = 1
         while x + d < roW and y - d > -1 and chessT[x + d][y - d] == 'x':
@@ -61,6 +65,7 @@ def checkEnd(turnXorO, x, y):
 
     # Kiểm tra điều kiện thắng của o
     else:
+        # Kiểm tra hàng chứa 5 ô o liên tiếp
         count = 1
         d = 1
         while y + d < coL and chessT[x][y + d] == 'o':
@@ -75,6 +80,7 @@ def checkEnd(turnXorO, x, y):
                 return True
             d += 1
 
+        # Kiểm tra cột chứa 5 ô o liên tiếp
         count = 1
         d = 1
         while x + d < roW and chessT[x + d][y] == 'o':
@@ -89,6 +95,7 @@ def checkEnd(turnXorO, x, y):
                 return True
             d += 1
 
+        # Kiểm tra đường chéo C1 chứa 5 ô o liên tiếp
         count = 1
         d = 1
         while x + d < roW and y + d < coL and chessT[x + d][y + d] == 'o':
@@ -102,7 +109,8 @@ def checkEnd(turnXorO, x, y):
             if count == 5:
                 return True
             d += 1
-        
+
+        # Kiểm tra đường chéo C2 chứa 5 ô o liên tiếp 
         count = 1
         d = 1
         while x + d < roW and y - d > -1 and chessT[x + d][y - d] == 'o':
