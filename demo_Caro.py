@@ -3,6 +3,12 @@ from tkinter import *
 from tkinter import messagebox 
 
 ## turnXorO string chứa 'x' hoặc 'o' ( lượt tương ứng ), x, y là tọa độ của điểm vừa chọn
+### Trả về 4 giá trị lần lượt là: 
+    # - True / False : Kết thúc trò chơi hay không
+    # - ['row', 'col', 'c1', 'c2']: Hướng của 5 x hoặc o liên tiếp
+    # - d: Số phần tử đằng sau tọa độ vừa được chọn ( trong 5 x hoặc o liên tiếp )
+    # - d1: Số phần tử đằng trước tọa độ vừa được chọn ( trong 5 x hoặc o liên tiếp )
+    ## 3 giá trị cuối trả về nhằm mục tiêu bôi đỏ 5 x hoặc o liên tiếp
 def checkEnd(turnXorO, x, y):
     roW = rowT[0]
     coL = colT[0]
@@ -134,11 +140,15 @@ def on_leave(e):
 
 # Hàm khi nhấn vào button giao diện trò chơi
 def clicked(btn, x, y):
+    if checkChessT[x][y]:
+        return
+    checkChessT[x][y] = True
     if numPlay[0] % 2 == 0:
         btn.unbind("<Leave>")
         btn.unbind("<Enter>")
         chessT[x][y] = 'x'
-        btn.config(text = 'X',font=('Arial',15), bg = 'white', fg = 'black', state = 'disable')
+        btn.config(text = 'X',font=('Arial',15), bg = 'white', fg = 'black')
+
         # Kiểm tra điều kiện thắng của X
         checkE, typeWin, sT, eN = checkEnd('x', x, y)
         if checkE:
@@ -148,6 +158,7 @@ def clicked(btn, x, y):
             play.config(text = 'Chơi lại')
             buttons = fr.winfo_children()
 
+            # Tô màu 5 phần tử x liên tục
             if typeWin == 'row':
                 buttons[x * colT[0] + y].config(fg = 'red')
                 for i in range(sT):
@@ -173,9 +184,11 @@ def clicked(btn, x, y):
                 for i in range(eN):
                     buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'red')
 
-
+            # Vô hiệu hóa các nút còn lại khi kết thúc trò chơi
+            for i in range(rowT[0]):
+                for j in range(colT[0]):
+                    checkChessT[i][j] = True
             for btnChild in buttons:
-                btnChild.config(state = 'disable')
                 try:
                     btnChild.unbind("<Leave>")
                     btnChild.unbind("<Enter>")
@@ -192,7 +205,7 @@ def clicked(btn, x, y):
         btn.unbind("<Leave>")
         btn.unbind("<Enter>")
         chessT[x][y] = 'o'
-        btn.config(text = 'O',font=('Arial',15), bg = 'white', fg = 'black', state = 'disable')
+        btn.config(text = 'O',font=('Arial',15), bg = 'white', fg = 'black')
 
         # Kiểm tra điều kiện thắng của O
         checkE, typeWin, sT, eN = checkEnd('o', x, y)
@@ -203,6 +216,7 @@ def clicked(btn, x, y):
             play.config(text = 'Chơi lại')
             buttons = fr.winfo_children()
 
+            # Tô màu 5 phần tử o liên tục
             if typeWin == 'row':
                 buttons[x * colT[0] + y].config(fg = 'red')
                 for i in range(sT):
@@ -222,14 +236,17 @@ def clicked(btn, x, y):
                 for i in range(eN):
                     buttons[(x - i - 1) * colT[0] + y - i - 1].config(fg = 'red')
             else:
-                buttons[x * colT[0] + y].config(fg = 'red')
+                buttons[x * colT[0] + y].config(fg = 'red') 
                 for i in range(sT):
                     buttons[(x + i + 1) * colT[0] + y - i - 1].config(fg = 'red')
                 for i in range(eN):
                     buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'red')
 
+            # Vô hiệu hóa các button còn lại khi kết thúc trò chơi
+            for i in range(rowT[0]):
+                for j in range(colT[0]):
+                    checkChessT[i][j] = True
             for btnChild in buttons:
-                btnChild.config(state = 'disable')
                 try:
                     btnChild.unbind("<Leave>")
                     btnChild.unbind("<Enter>")
@@ -277,15 +294,18 @@ def btnPlay():
     play.config(text = 'Làm mới bàn cờ')
     for i in range(roW):
         d = []
+        dd = []
         for j in range(coL):
             d.append(' ')
+            dd.append(False)
         chessT.append(d)
+        checkChessT.append(dd)
+
     turnWho.config(text = 'Tới lượt của x', font=('Arial, 15'))
     # Xây dựng giao diện trò chơi bằng mảng 2 chiều gồm roW * coL Button 
     buttons = [[Button(fr,font=('Arial', 15), width=5, height=2) for i in range(coL)] for i in range(roW)]
     for b in range(roW):
         for a in range(coL):
-            # Text của Button chính là tọa độ của chúng
             buttons[b][a].config(bg = 'white', activebackground = 'white',width = 3, height = 1)
             buttons[b][a].bind("<Enter>", on_enter)
             buttons[b][a].bind("<Leave>", on_leave)
@@ -293,6 +313,8 @@ def btnPlay():
             buttons[b][a].grid( row = b, column = a)
 # Bàn cờ mặc định chessT
 chessT = []
+# Đánh dấu các điểm đã chọn
+checkChessT = []
 # Số lượt đã chơi trong ván hiện tại
 numPlay = []
 # Số lượt đi tối đa
