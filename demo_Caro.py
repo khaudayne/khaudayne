@@ -258,7 +258,6 @@ def clicked(btn, x, y):
             turnWho.config(text='Hòa!')
             return
         turnWho.config(text = 'Tới lượt của x', font=('Arial, 15'))
-    print(numPlay[0], maxNumPlay[0])
     numPlay[0] += 1
     
 
