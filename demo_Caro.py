@@ -287,20 +287,15 @@ def btnPlay():
     desChild()
 
     # Khởi tạo bàn cờ và số lượt đầu trận
-    numPlay.append(0)
-    rowT.append(roW)
-    colT.append(coL)
-    maxNumPlay.append(roW * coL)
+    numPlay[0] = 0
+    rowT[0] = roW
+    colT[0] = coL
+    maxNumPlay[0] = roW * coL
     play.config(text = 'Làm mới bàn cờ')
     for i in range(roW):
-        d = []
-        dd = []
         for j in range(coL):
-            d.append(' ')
-            dd.append(False)
-        chessT.append(d)
-        checkChessT.append(dd)
-
+            chessT[i][j] = ' '
+            checkChessT[i][j] = False
     turnWho.config(text = 'Tới lượt của x', font=('Arial, 15'))
     # Xây dựng giao diện trò chơi bằng mảng 2 chiều gồm roW * coL Button 
     buttons = [[Button(fr,font=('Arial', 15), width=5, height=2) for i in range(coL)] for i in range(roW)]
@@ -312,16 +307,16 @@ def btnPlay():
             buttons[b][a].config(command= lambda btn =  buttons[b][a], x = b, y = a: clicked(btn, x, y))
             buttons[b][a].grid( row = b, column = a)
 # Bàn cờ mặc định chessT
-chessT = []
+chessT = [[' ' for i in range(100)] for i in range(100)]
 # Đánh dấu các điểm đã chọn
-checkChessT = []
+checkChessT = [[False for i in range(100)] for i in range(100)]
 # Số lượt đã chơi trong ván hiện tại
-numPlay = []
+numPlay = [0]
 # Số lượt đi tối đa
-maxNumPlay = []
+maxNumPlay = [0]
 # Giá trị số hàng và cột của bàn cờ
-rowT = []
-colT = []
+rowT = [0]
+colT = [0]
 
 ### Xây dựng giao diện game 
 # Widget root cho giao diện
