@@ -258,6 +258,7 @@ def clicked(btn, x, y):
             turnWho.config(text='Hòa!')
             return
         turnWho.config(text = 'Tới lượt của x', font=('Arial, 15'))
+    print(numPlay[0], maxNumPlay[0])
     numPlay[0] += 1
     
 
@@ -290,7 +291,7 @@ def btnPlay():
     numPlay[0] = 0
     rowT[0] = roW
     colT[0] = coL
-    maxNumPlay[0] = roW * coL
+    maxNumPlay[0] = roW * coL - 1
     play.config(text = 'Làm mới bàn cờ')
     for i in range(roW):
         for j in range(coL):
