@@ -77,7 +77,7 @@ def checkEnd(turnXorO, x, y):
         d = 1
         while y + d < coL and chessT[x][y + d] == 'o':
             if count + d == 5:
-                return True, 'row'
+                return True, 'row', 4, 0
             d += 1
         d -= 1
         d1 = 1
@@ -160,29 +160,29 @@ def clicked(btn, x, y):
 
             # Tô màu 5 phần tử x liên tục
             if typeWin == 'row':
-                buttons[x * colT[0] + y].config(fg = 'red')
+                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[x * colT[0] + y + i + 1].config(fg = 'red')
+                    buttons[x * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
                 for i in range(eN):
-                    buttons[x * colT[0] + y - i - 1].config(fg = 'red')
+                    buttons[x * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
             elif typeWin == 'col':
-                buttons[x * colT[0] + y].config(fg = 'red')
+                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y].config(fg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y].config(fg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y].config(fg = 'white', bg = 'red')
             elif typeWin == 'c1':
-                buttons[x * colT[0] + y].config(fg = 'red')
+                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y + i + 1].config(fg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y - i - 1].config(fg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
             else:
-                buttons[x * colT[0] + y].config(fg = 'red')
+                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y - i - 1].config(fg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
 
             # Vô hiệu hóa các nút còn lại khi kết thúc trò chơi
             for i in range(rowT[0]):
@@ -218,29 +218,29 @@ def clicked(btn, x, y):
 
             # Tô màu 5 phần tử o liên tục
             if typeWin == 'row':
-                buttons[x * colT[0] + y].config(fg = 'red')
+                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[x * colT[0] + y + i + 1].config(fg = 'red')
+                    buttons[x * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
                 for i in range(eN):
-                    buttons[x * colT[0] + y - i - 1].config(fg = 'red')
+                    buttons[x * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
             elif typeWin == 'col':
-                buttons[x * colT[0] + y].config(fg = 'red')
+                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y].config(fg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y].config(fg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y].config(fg = 'white', bg = 'red')
             elif typeWin == 'c1':
-                buttons[x * colT[0] + y].config(fg = 'red')
+                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y + i + 1].config(fg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y - i - 1].config(fg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
             else:
-                buttons[x * colT[0] + y].config(fg = 'red') 
+                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red') 
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y - i - 1].config(fg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
 
             # Vô hiệu hóa các button còn lại khi kết thúc trò chơi
             for i in range(rowT[0]):
@@ -269,6 +269,7 @@ def desChild():
 
 # Hàm khi bấm núi chơi  
 def btnPlay():
+    turnWho.focus()
     # roW và coL lần lượt là hàng và cột của bàn cờ
     try:
         roW = int(e1.get())
