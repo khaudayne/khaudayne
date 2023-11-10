@@ -1,11 +1,13 @@
 # Import thư viện tạo giao diện đơn giản
+import random
 from tkinter import *
-from tkinter import messagebox 
+from tkinter import messagebox
+from tkinter.ttk import Combobox 
 
 ## turnXorO string chứa 'x' hoặc 'o' ( lượt tương ứng ), x, y là tọa độ của điểm vừa chọn
 ### Trả về 4 giá trị lần lượt là: 
     # - True / False : Kết thúc trò chơi hay không
-    # - ['row', 'col', 'c1', 'c2']: Hướng của 5 x hoặc o liên tiếp
+    # - ['row', 'col', 'c1', 'c2']: Hướng của 5 x hoặc o liên tiếp. Tương đương 4 hướng [ -- , | , \ , /]
     # - d: Số phần tử đằng sau tọa độ vừa được chọn ( trong 5 x hoặc o liên tiếp )
     # - d1: Số phần tử đằng trước tọa độ vừa được chọn ( trong 5 x hoặc o liên tiếp )
     ## 3 giá trị cuối trả về nhằm mục tiêu bôi đỏ 5 x hoặc o liên tiếp
@@ -130,6 +132,27 @@ def checkEnd(turnXorO, x, y):
 
     return False, None, None, None
 
+# Hàm lấy tọa độ một điểm chưa được chọn ngẫu nhiên
+def get_Point():
+    while True:
+        x = random.randint(0, rowT[0] - 1)
+        y = random.randint(0, colT[0] - 1)
+        if not checkChessT[x][y]:
+            return x, y
+
+# Hàm xuất hiện chọn đánh X hay O khi chơi với máy
+def choose_Type(e):
+    typeGame = e.widget.get()
+    try:
+        if typeGame == 'Chơi với máy':
+            clone_Label.grid_forget()
+            cbb_X_O.grid(row = 0, column = 3 , padx = 30)
+        else:
+            cbb_X_O.grid_forget()
+            clone_Label.grid(row = 0, column = 2)
+    except:
+        pass
+
 # Hàm hover button
 def on_enter(e):
     e.widget.config(bg='#99FFFF',fg = '#99FFFF')
@@ -154,35 +177,39 @@ def clicked(btn, x, y):
         if checkE:
             sT = int(sT)
             eN = int(eN)
-            turnWho.config(text='X giành chiến thắng!')
+
+            if typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh O':
+                turnWho.config(text='Máy giành chiến thắng!')
+            elif typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh X':
+                turnWho.config(text='Người giành chiến thắng!')
+            else:
+                turnWho.config(text='X giành chiến thắng!')
+
             play.config(text = 'Chơi lại')
             buttons = fr.winfo_children()
 
             # Tô màu 5 phần tử x liên tục
+            buttons[x * colT[0] + y].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
             if typeWin == 'row':
-                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[x * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
+                    buttons[x * colT[0] + y + i + 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
                 for i in range(eN):
-                    buttons[x * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
+                    buttons[x * colT[0] + y - i - 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
             elif typeWin == 'col':
-                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y].config(fg = 'white', bg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y].config(fg = 'white', bg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
             elif typeWin == 'c1':
-                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
             else:
-                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
 
             # Vô hiệu hóa các nút còn lại khi kết thúc trò chơi
             for i in range(rowT[0]):
@@ -196,11 +223,25 @@ def clicked(btn, x, y):
                     pass
             return
 
-
+        # Nếu bàn cờ hết chỗ đánh thì thông báo hòa
         if numPlay[0] == maxNumPlay[0]:
             turnWho.config(text='Hòa!')
             return
-        turnWho.config(text = 'Tới lượt của o', font=('Arial, 15'))
+        
+        if typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh O':
+            turnWho.config(text = 'Tới lượt của bạn', font=('Arial, 15'))
+        elif typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh X':
+            turnWho.config(text = 'Tới lượt của máy', font=('Arial, 15'))
+            x, y = get_Point()
+            buttons = fr.winfo_children()
+            btn = buttons[x * colT[0] + y]
+            numPlay[0] += 1
+            clicked(btn, x, y)
+            return
+        else:
+            turnWho.config(text = 'Tới lượt của o', font=('Arial, 15'))
+
+        
     else:
         btn.unbind("<Leave>")
         btn.unbind("<Enter>")
@@ -212,35 +253,39 @@ def clicked(btn, x, y):
         if checkE:
             sT = int(sT)
             eN = int(eN)
-            turnWho.config(text='O giành chiến thắng!')
+            
+            if typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh O':
+                turnWho.config(text='Người giành chiến thắng!')
+            elif typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh X':
+                turnWho.config(text='Máy giành chiến thắng!')
+            else:
+                turnWho.config(text='O giành chiến thắng!')
+
             play.config(text = 'Chơi lại')
             buttons = fr.winfo_children()
 
             # Tô màu 5 phần tử o liên tục
-            if typeWin == 'row':
-                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
+            buttons[x * colT[0] + y].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
+            if typeWin == 'row':               
                 for i in range(sT):
-                    buttons[x * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
+                    buttons[x * colT[0] + y + i + 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
                 for i in range(eN):
-                    buttons[x * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
+                    buttons[x * colT[0] + y - i - 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
             elif typeWin == 'col':
-                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y].config(fg = 'white', bg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y].config(fg = 'white', bg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
             elif typeWin == 'c1':
-                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red')
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
             else:
-                buttons[x * colT[0] + y].config(fg = 'white', bg = 'red') 
                 for i in range(sT):
-                    buttons[(x + i + 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red')
+                    buttons[(x + i + 1) * colT[0] + y - i - 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
                 for i in range(eN):
-                    buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red')
+                    buttons[(x - i - 1) * colT[0] + y + i + 1].config(fg = 'white', bg = 'red', activebackground = 'red', activeforeground = 'white')
 
             # Vô hiệu hóa các button còn lại khi kết thúc trò chơi
             for i in range(rowT[0]):
@@ -257,11 +302,21 @@ def clicked(btn, x, y):
         if numPlay[0] == maxNumPlay[0]:
             turnWho.config(text='Hòa!')
             return
-        turnWho.config(text = 'Tới lượt của x', font=('Arial, 15'))
+        if typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh O':
+            turnWho.config(text = 'Tới lượt của máy', font=('Arial, 15'))
+            x, y = get_Point()
+            buttons = fr.winfo_children()
+            btn = buttons[x * colT[0] + y]
+            numPlay[0] += 1
+            clicked(btn, x, y)
+            return
+        elif typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh X':
+            turnWho.config(text = 'Tới lượt của bạn', font=('Arial, 15'))
+        else:
+            turnWho.config(text = 'Tới lượt của x', font=('Arial, 15'))
+
     numPlay[0] += 1
     
-
-
 # Hàm xóa hết giao diện bàn cờ khi ấn núi chơi 
 def desChild():
     for widget in fr.winfo_children():
@@ -286,7 +341,9 @@ def btnPlay():
         messagebox.showwarning('Show Warning', 'Kích thước bảng quá to, vui lòng nhập lại!')
         return
     desChild()
-
+    typeG[0] = cbb_Type_Play.get()
+    if typeG[0] == 'Chơi với máy':
+        choose_X_O[0] = cbb_X_O.get()
     # Khởi tạo bàn cờ và số lượt đầu trận
     numPlay[0] = 0
     rowT[0] = roW
@@ -307,6 +364,13 @@ def btnPlay():
             buttons[b][a].bind("<Leave>", on_leave)
             buttons[b][a].config(command= lambda btn =  buttons[b][a], x = b, y = a: clicked(btn, x, y))
             buttons[b][a].grid( row = b, column = a)
+    # Nếu chơi với máy lấy tọa độ ngẫu nhiên rồi đánh vào bàn cờ
+    if typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh O':
+        x, y = get_Point()
+        buttons = fr.winfo_children()
+        btn = buttons[x * colT[0] + y]
+        clicked(btn, x, y)
+
 # Bàn cờ mặc định chessT
 chessT = [[' ' for i in range(100)] for i in range(100)]
 # Đánh dấu các điểm đã chọn
@@ -318,6 +382,10 @@ maxNumPlay = [0]
 # Giá trị số hàng và cột của bàn cờ
 rowT = [0]
 colT = [0]
+# Thể loại chơi
+typeG = [0]
+# Đánh X hay O
+choose_X_O = [0]
 
 ### Xây dựng giao diện game 
 # Widget root cho giao diện
@@ -329,14 +397,33 @@ frHang = Frame(parent)
 frHang.pack()
 nRow = Label(frHang, text = "Nhập số hàng:",width=15).grid(row = 0, column = 0)
 e1 = Entry(frHang)
+e1.insert(END, '10')
+e1.focus()
 e1.grid(row = 0, column = 1)
+
+# Combobox chọn chế đệ chơi
+cbb_Type_Play = Combobox(frHang)
+cbb_Type_Play['values'] = ('Chơi với người', 'Chơi với máy')
+cbb_Type_Play.grid(row = 0, column = 2, padx = 30)
+cbb_Type_Play.set('Chơi với người')
+cbb_Type_Play.bind('<<ComboboxSelected>>', choose_Type)
 
 # Frame chứa Entry lấy giá trị của cột
 frCot = Frame(parent)
 frCot.pack()
-nCol = Label(frCot, text = "Nhập số cột:", width=15,pady= 5).grid(row = 1, column = 0)
+nCol = Label(frCot, text = "Nhập số cột:", width=15).grid(row = 0, column = 0)
 e2 = Entry(frCot)
-e2.grid(row = 1, column = 1)
+e2.insert(END, '10')
+e2.grid(row = 0, column = 1)
+
+# Label tạo khoảng trống làm đẹp giao diện XD
+clone_Label = Label(frCot, text = "", width=28)
+clone_Label.grid(row = 0, column = 2)
+
+# Combobox chọn chơi X hay O
+cbb_X_O = Combobox(frCot)
+cbb_X_O['values'] = ('Đánh X', 'Đánh O')
+cbb_X_O.set('Đánh X')
 
 # Nút bắt đầu trò chơi
 play = Button(parent, text = "Bắt đầu chơi", command = btnPlay)
