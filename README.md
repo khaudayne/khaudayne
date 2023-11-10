@@ -8,5 +8,9 @@ Hướng dẫn sử dụng:
 - Nhập tọa độ của điểm cần đánh dấu dưới dạng str: '{0x} {0y}' ( X và O thay phiên nhau )
 
 *** demo_Caro.py
-- Nhập số hàng và cột vào 2 entry tương ứng, nhấn bắt đầu chơi để khởi tạo bàn cờ
-- Trải nghiệm trò chơi XD
+* Chế độ chơi với người
+  - Nhập số hàng và cột vào 2 entry tương ứng, nhấn bắt đầu chơi để khởi tạo bàn cờ
+  - Trải nghiệm trò chơi XD
+* Chế độ chơi với máy
+  - Lựa chọn đánh X hoặc O
+  - Hành hạ máy thôi chứ còn chờ gì
