@@ -11,7 +11,7 @@ from tkinter.ttk import Combobox
     # - d: Số phần tử đằng sau tọa độ vừa được chọn ( trong 5 x hoặc o liên tiếp )
     # - d1: Số phần tử đằng trước tọa độ vừa được chọn ( trong 5 x hoặc o liên tiếp )
     ## 3 giá trị cuối trả về nhằm mục tiêu bôi đỏ 5 x hoặc o liên tiếp
-def checkEnd(turnXorO, x, y):
+def checkEnd(state,turnXorO, x, y):
     roW = rowT[0]
     coL = colT[0]
     # Kiểm tra điều kiện thắng của x
@@ -19,7 +19,7 @@ def checkEnd(turnXorO, x, y):
         # Kiểm tra hàng chứa 5 ô x liên tiếp
         count = 1
         d = 1
-        while y + d < coL and chessT[x][y + d] == 'x':
+        while y + d < coL and state[x][y + d] == 'x':
             if count + d == 5:
                 return True, 'row', 4, 0
             d += 1
@@ -33,13 +33,13 @@ def checkEnd(turnXorO, x, y):
         # Kiểm tra cột chứa 5 ô x liên tiếp
         count = 1
         d = 1
-        while x + d < roW and chessT[x + d][y] == 'x':
+        while x + d < roW and state[x + d][y] == 'x':
             if count + d== 5:
                 return True, 'col', 4, 0
             d += 1
         d -= 1
         d1 = 1
-        while x - d1 > -1 and chessT[x - d1][y] == 'x':
+        while x - d1 > -1 and state[x - d1][y] == 'x':
             if count + d + d1 == 5:
                 return True, 'col', d, d1
             d1 += 1
@@ -53,7 +53,7 @@ def checkEnd(turnXorO, x, y):
             d += 1
         d -= 1
         d1 = 1
-        while x - d1 > -1 and y - d1 > -1 and chessT[x - d1][y - d1] == 'x':
+        while x - d1 > -1 and y - d1 > -1 and state[x - d1][y - d1] == 'x':
             if count + d + d1 == 5:
                 return True, 'c1', d, d1
             d1 += 1
@@ -61,13 +61,13 @@ def checkEnd(turnXorO, x, y):
         # Kiểm tra đường chéo C2 chứa 5 ô x liên tiếp
         count = 1
         d = 1
-        while x + d < roW and y - d > -1 and chessT[x + d][y - d] == 'x':
+        while x + d < roW and y - d > -1 and state[x + d][y - d] == 'x':
             if count + d == 5:
                 return True, 'c2', 4, 0
             d += 1
         d -= 1
         d1 = 1
-        while x - d1 > -1 and y + d1 < coL and chessT[x - d1][y + d1] == 'x':
+        while x - d1 > -1 and y + d1 < coL and state[x - d1][y + d1] == 'x':
             if count + d + d1 == 5:
                 return True, 'c2', d, d1
             d1 += 1
@@ -77,13 +77,13 @@ def checkEnd(turnXorO, x, y):
         # Kiểm tra hàng chứa 5 ô o liên tiếp
         count = 1
         d = 1
-        while y + d < coL and chessT[x][y + d] == 'o':
+        while y + d < coL and state[x][y + d] == 'o':
             if count + d == 5:
                 return True, 'row', 4, 0
             d += 1
         d -= 1
         d1 = 1
-        while y - d1 > -1 and chessT[x][y - d1] == 'o':
+        while y - d1 > -1 and state[x][y - d1] == 'o':
             if count + d + d1 == 5:
                 return True, 'row', d, d1
             d1 += 1
@@ -91,13 +91,13 @@ def checkEnd(turnXorO, x, y):
         # Kiểm tra cột chứa 5 ô o liên tiếp
         count = 1
         d = 1
-        while x + d < roW and chessT[x + d][y] == 'o':
+        while x + d < roW and state[x + d][y] == 'o':
             if count + d == 5:
                 return True, 'col', 4, 0
             d += 1
         d -= 1
         d1 = 1
-        while x - d1 > -1 and chessT[x - d1][y] == 'o':
+        while x - d1 > -1 and state[x - d1][y] == 'o':
             if count + d + d1 == 5:
                 return True, 'col', d, d1
             d1 += 1
@@ -105,13 +105,13 @@ def checkEnd(turnXorO, x, y):
         # Kiểm tra đường chéo C1 chứa 5 ô o liên tiếp
         count = 1
         d = 1
-        while x + d < roW and y + d < coL and chessT[x + d][y + d] == 'o':
+        while x + d < roW and y + d < coL and state[x + d][y + d] == 'o':
             if count + d == 5:
                 return True, 'c1', 4, 0
             d += 1
         d -= 1
         d1 = 1
-        while x - d1 > -1 and y - d1 > -1 and chessT[x - d1][y - d1] == 'o':
+        while x - d1 > -1 and y - d1 > -1 and state[x - d1][y - d1] == 'o':
             if count + d + d1 == 5:
                 return True, 'c1', d, d1
             d1 += 1
@@ -119,13 +119,13 @@ def checkEnd(turnXorO, x, y):
         # Kiểm tra đường chéo C2 chứa 5 ô o liên tiếp 
         count = 1
         d = 1
-        while x + d < roW and y - d > -1 and chessT[x + d][y - d] == 'o':
+        while x + d < roW and y - d > -1 and state[x + d][y - d] == 'o':
             if count + d == 5:
                 return True, 'c2', 4, 0
             d += 1
         d -= 1
         d1 = 1
-        while x - d1 > -1 and y + d1 < coL and chessT[x - d1][y + d1] == 'o':
+        while x - d1 > -1 and y + d1 < coL and state[x - d1][y + d1] == 'o':
             if count + d + d1 == 5:
                 return True, 'c2', d, d1
             d1 += 1
@@ -173,7 +173,7 @@ def clicked(btn, x, y):
         btn.config(text = 'X',font=('Arial',15), bg = 'white', fg = 'black')
 
         # Kiểm tra điều kiện thắng của X
-        checkE, typeWin, sT, eN = checkEnd('x', x, y)
+        checkE, typeWin, sT, eN = checkEnd(chessT,'x', x, y)
         if checkE:
             sT = int(sT)
             eN = int(eN)
@@ -249,7 +249,7 @@ def clicked(btn, x, y):
         btn.config(text = 'O',font=('Arial',15), bg = 'white', fg = 'black')
 
         # Kiểm tra điều kiện thắng của O
-        checkE, typeWin, sT, eN = checkEnd('o', x, y)
+        checkE, typeWin, sT, eN = checkEnd(chessT,'o', x, y)
         if checkE:
             sT = int(sT)
             eN = int(eN)
