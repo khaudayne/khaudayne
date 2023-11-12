@@ -14,3 +14,7 @@ Hướng dẫn sử dụng:
 * Chế độ chơi với máy
   - Lựa chọn đánh X hoặc O
   - Hành hạ máy thôi chứ còn chờ gì
+
+Sửa đổi hàm heuristic:
+- Bỏ qua những tọa độ nếu vị trí đằng trước nó là điểm cùng kiểu ( chỉ lấy những điểm ngoài cùng )
+- Bỏ qua những điểm mà 2 ô liên tiếp trên cạnh đều là khoảng trống ( tồi )
