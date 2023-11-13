@@ -15,12 +15,16 @@ def on_leave(e):
 
 # Hàm heuristic h(n) đánh giá giá trị của bàn cờ:
 def evaluate(state, player, x, y):
+    # Nếu hết cờ
     if x != -1 and y != -1 and checkEnd(state, x, y)[0]:
+        # Trả về vô cùng nếu máy thắng
         if player == HUMAN[0]:
             return math.inf
         else:
-            return -math.inf
+            return -math.inf # Trả về âm vô cùng nếu người thắng
     
+    # Thực hiện chèn điểm vừa đánh ( nhưng chưa được cho vào store ) tạm thời vào store để tính score của bàn cờ
+    ## Duyệt hết danh sách store cho tới khi gặp phần tử [-1, -1]
     numMark = 0
     if player == COMP[0]:
         while store_Human[numMark] != [-1, -1]:
@@ -31,88 +35,188 @@ def evaluate(state, player, x, y):
             numMark += 1
         store_Comp[numMark] = [x, y]
 
+    # Tổng điểm của máy
     total_Score_Comp = 0
+    # Tổng điểm của người
     total_Score_Human = 0
 
+    # Chuỗi 4 ký tự của máy trên 5 ô liên tục không bị chặn 2 đầu nhưng vẫn có thể bị block ( Ví dụ _xx_xx_)
+    # num4_Comp_Can_Block = 0
+    # Chuỗi 4 ký tự của người trên 5 ô liên tục không bị chặn 2 đầu nhưng vẫn có thể bị block ( Ví dụ _xx_xx_)
+    # num4_Human_Can_Block = 0
+
+    # Chuỗi 4 ký tứ của máy trên 5 ô liên tục nhưng bị chặn 1 đầu ( Ví dụ xxx xo)
+    num4_Comp_Block = 0
+    # Chuỗi 4 ký tứ của người trên 5 ô liên tục nhưng bị chặn 1 đầu ( Ví dụ xxx xo)
+    num4_Human_Block = 0
+
+    # Chuỗi 4 ký tứ của người trên 5 ô liên tục không bị chặn cả 2 đầu ( Ví dụ o xxx x )
     num4_Human = 0
+    # Chuỗi 4 ký tứ của máy trên 5 ô liên tục không bị chặn cả 2 đầu ( Ví dụ o xxx x )
     num4_Comp = 0
 
+    # Chuỗi 3 ký tứ của người trên 5 ô liên tục không bị chặn cả 2 đầu ( Ví dụ o xx x )
     num3_Human = 0
+    # Chuỗi 3 ký tứ của máy trên 5 ô liên tục không bị chặn cả 2 đầu ( Ví dụ o x xx )
     num3_Comp = 0
 
+    # Chuỗi 3 ký tứ của người trên 5 ô liên tục nhưng bị chặn 1 đầu ( Ví dụ x x xo)
     num3_Human_Block = 0
+    # Chuỗi 3 ký tứ của máy trên 5 ô liên tục nhưng bị chặn 1 đầu ( Ví dụ xx xo)
     num3_Comp_Block = 0
 
+    # Chuỗi 2 ký tứ của người trên 5 ô liên tục không bị chặn cả 2 đầu ( Ví dụ o  x x )
     num2_Human = 0
+    # Chuỗi 2 ký tứ của máy trên 5 ô liên tục không bị chặn cả 2 đầu ( Ví dụ o  x x )
     num2_Comp = 0
 
+    # Chuỗi 2 ký tứ của người trên 5 ô liên tục nhưng bị chặn 1 đầu ( Ví dụ x xo)
     num2_Human_Block = 0
+    # Chuỗi 2 ký tứ của máy trên 5 ô liên tục nhưng bị chặn 1 đầu ( Ví dụ x xo)
     num2_Comp_Block = 0
 
+    # Số lượng các phần tử máy cạnh phần tử người
     near_By_Human = 0
+    # Số lượng các phần tử người cạnh phần tử cạnh
     near_By_Comp = 0
 
     # Tính điểm cho Comp
     for xx, yy in store_Comp:
         if xx == -1 or yy == -1:
             break
-        # Đếm theo hàng ngang
+        # ĐẾM THEO HÀNG NGANG --
+
+        # Kiểm tra xem tọa độ của điểm có trong trường hợp "tệ" hay không
+        ## Trường hợp 1 là đứng đằng trước nó đã có 1 điểm khác được xét rồi (sẽ bị trùng dữ liệu, dữ liệu trùng thậm chí không đem lại tác dụng gì)
+        ## Trường hợp 2 là 2 ô liên tiếp phía trước nó không có chứa ký tự gì cả
+        ### Cách giải thích trên sẽ xuyên suốt hàm heuristic!
+        b = False
+        if yy > 0 and chessT[xx][yy - 1] == COMP[0]:
+            b = True
+        if not b and yy + 2 < colT[0] and chessT[xx][yy + 1] == ' ' and chessT[xx][yy + 2] == ' ':
+            b = True
+
+        # Kiểm tra xem đằng trước nó có phải cạnh của bàn cờ hoặc một ký tự của người hay không
+        ## Nếu có thì những chuỗi sẽ xét tới đều nằm trong diện "bị chặn"
+        ### Cách giải thích này cũng tổng quát với cả 4 đường ngang, thẳng, C1, C2
         a = False
-        nSpace = 0
         if yy > 0 and chessT[xx][yy - 1] == HUMAN[0]:
             a = True
+        if yy == 0:
+            a = True
+        # nSpace là số ký tự trắng trên 4 phần tử đằng sau phần tử đang xét
+        nSpace = 0
+
+        # Duyệt 4 phần tử đằng sau nó
         for i in range(1, 5):
+            # Nếu tệ thì hủy duyệt
+            if b:
+                break
+            # Nếu gặp phải ký tự của người
             if yy + i < colT[0] and chessT[xx][yy + i] == HUMAN[0]:
+                # Nếu bị chặn thì sẽ loại (chặn 2 đầu không thể giành chiến thắng)
                 if a:
                     break
                 else:
+                    # Cấp nhật số lượng các chuỗi vừa định nghĩa
+                    ## Nếu đằng trước ký tự người là ký tự máy thì chuỗi sẽ bị chặn 1 đầu ( __xx_xo )
                     if chessT[xx][yy + i - 1] != ' ':
                         if i - nSpace - 1 == 1:
                             num2_Comp_Block += 1
                         elif i - nSpace - 1 == 2:
                             num3_Comp_Block += 1
                         elif i - nSpace - 1 == 3:
-                            num4_Comp += 1
+                            num4_Comp_Block += 1
+                    ## Nếu không phải ký tự máy thì không bị chặn đầu nào ( _xxx_o__)
                     else:
                         if i - nSpace - 1 == 1:
                             num2_Comp += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Comp += 1
+                            # Trường hợp tốt: num3_Comp có thể mở rộng trực tiếp thành num4_Comp: __xxx_o
+                            if yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                                num3_Comp += 1
+                            else:
+                                num3_Comp_Block += 1 # num3 chỉ có thể mở rộng lên num4_Block: |_xxx_o hoặc o_xxx_o
                     break
-            elif yy + i < colT[0] and chessT[xx][yy + i] == ' ':
+
+            # Nếu gặp phần tử trắng thì cập nhật số lượng
+            if yy + i < colT[0] and chessT[xx][yy + i] == ' ':
                 nSpace += 1
+            
+            # Sau khi duyện hết 4 phần tử, cập nhật số lượng các chuỗi
             if i == 4 and yy + i < colT[0]:
-                if i - nSpace == 1:
-                    if a:
-                        num2_Comp_Block += 1
-                    else:
-                        num2_Comp += 1
-                elif i - nSpace == 2:
-                    if a:
+                # Trường hợp xấu nhất nếu phần tử thứ 4 rơi vào cột cuối cùng của bảng và có ký tự máy ( Ví dụ __xx_xx| ) -> Bị chặn 1 đầu
+                if yy + i == colT[0] - 1 and chessT[xx][yy + i] == COMP[0]:
+                    if i - nSpace == 3:
+                        num4_Comp_Block += 1
+                    elif i - nSpace == 2:
                         num3_Comp_Block += 1
-                    else:
-                        num3_Comp += 1
-                elif i - nSpace == 3:
-                    num4_Comp += 1
+                    elif i - nSpace == 1:
+                        num2_Comp_Block += 1
+
+                else:
+                    if i - nSpace == 1:
+                        if a:
+                            num2_Comp_Block += 1
+                        else:
+                            num2_Comp += 1
+                    elif i - nSpace == 2:
+                        # Trường hợp đặc biệt, kể cả có ký tự người ở trước hay không thì 3 ký tự trong 5 ô liên tiếp không thể chuyển thành num4_Comp
+                        ## Ví dụ: __x_x_x__
+                        if chessT[xx][yy + i] == COMP[0]:
+                            num3_Comp_Block += 1
+                        else:
+                            if a:
+                                num3_Comp_Block += 1
+                            else:
+                                num3_Comp += 1
+                    elif i - nSpace == 3:
+                        # Trường hợp đặc biệt, kể cả có ký tự người ở trước hay không thì 4 ký tự máy trong 5 ô liên tiếp vẫn có thể bị block
+                        ## Ví dụ __xx_xx___ -> __xxoxx___
+                        if chessT[xx][yy + i] == COMP[0]:
+                            num4_Comp_Block += 1
+                        else:
+                            if a:
+                                num4_Comp_Block += 1
+                            else:
+                                num4_Comp += 1
+            # Trường hợp mở rộng ra 4 ô đằng sau vượt quá ranh giới trò chơi ( chuỗi sẽ tự động bị chặn 1 đầu ở ranh giới )
             if yy + i >= colT[0]:
+                # Nếu bị chặn nốt đầu còn lại thì thoát ( __oxxxx| )
                 if a:
                     break
                 else:
                     if i - nSpace - 1 == 1:
-                        num2_Comp += 1
+                        num2_Comp_Block += 1
                     elif i - nSpace - 1 == 2:
-                        num3_Comp += 1
-                    elif i - nSpace - 1== 3:
-                        num4_Comp += 1
+                        # Trường hợp đặc biệt: phần tử cuối cùng trước khi chạm thành bảng là phần tử trống -> chuỗi 3 liên tục có thể mở rộng thành num4
+                        ## Ví dụ: __xxx_| -> _xxxx_|
+                        if chessT[xx][yy + i - 1] == ' ' and yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                            num3_Comp += 1
+                        else:
+                            num3_Comp_Block += 1
+                    elif i - nSpace - 1== 3: # Duy nhất trường hợp: __xxxx|
+                        num4_Comp_Block += 1
                     break
 
 
-        # Đếm theo hàng dọc
+        # ĐẾM THEO HÀNG DỌC |
+        b = False
+        if xx > 0 and chessT[xx - 1][yy] == COMP[0]:
+            b = True
+        if not b and xx + 2 < rowT[0] and chessT[xx + 1][yy] == ' ' and chessT[xx + 2][yy] == ' ':
+            b = True
+
         a = False
         nSpace = 0
         if xx > 0 and chessT[xx - 1][yy] == HUMAN[0]:
             a = True
+        if xx == 0:
+            a = True
+
         for i in range(1, 5):
+            if b:
+                break
             if xx + i < rowT[0] and chessT[xx + i][yy] == HUMAN[0]:
                 if a:
                     break
@@ -123,49 +227,84 @@ def evaluate(state, player, x, y):
                         elif i - nSpace - 1 == 2:
                             num3_Comp_Block += 1
                         elif i - nSpace - 1 == 3:
-                            num4_Comp += 1
+                            num4_Comp_Block += 1
                     else:
                         if i - nSpace - 1 == 1:
                             num2_Comp += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Comp += 1
+                            if xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                                num3_Comp += 1
+                            else:
+                                num3_Comp_Block += 1
                     break
-            elif xx + i < colT[0] and chessT[xx + i][yy] == ' ':
+            if xx + i < rowT[0] and chessT[xx + i][yy] == ' ':
                 nSpace += 1
             if i == 4 and xx + i < rowT[0]:
-                if i - nSpace == 1:
-                    if a:
-                        num2_Comp_Block += 1
-                    else:
-                        num2_Comp += 1
-                elif i - nSpace == 2:
-                    if a:
+                if xx + i == rowT[0] - 1 and chessT[xx + i][yy] == COMP[0]:
+                    if i - nSpace == 3:
+                        num4_Comp_Block += 1
+                    elif i - nSpace == 2:
                         num3_Comp_Block += 1
-                    else:
-                        num3_Comp += 1
-                elif i - nSpace == 3:
-                    num4_Comp += 1
+                    elif i - nSpace == 1:
+                        num2_Comp_Block += 1
+
+                else:
+                    if i - nSpace == 1:
+                        if a:
+                            num2_Comp_Block += 1
+                        else:
+                            num2_Comp += 1
+                    elif i - nSpace == 2:
+                        if chessT[xx + i][yy] == COMP[0]:
+                            num3_Comp_Block += 1
+                        else:
+                            if a:
+                                num3_Comp_Block += 1
+                            else:
+                                num3_Comp += 1
+                    elif i - nSpace == 3:
+                        if chessT[xx + i][yy] == COMP[0]:
+                            num4_Comp_Block += 1
+                        else:
+                            if a:
+                                num4_Comp_Block += 1
+                            else:
+                                num4_Comp += 1
             if xx + i >= rowT[0]:
                 if a:
                     break
                 else:
                     if i - nSpace - 1 == 1:
-                        num2_Comp += 1
-                    elif i - nSpace -1 == 2:
-                        num3_Comp += 1
+                        num2_Human_Block += 1
+                    elif i - nSpace - 1 == 2:
+                        if chessT[xx + i - 1][yy] == ' ' and xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                            num3_Comp += 1
+                        else:
+                            num3_Comp_Block += 1
                     elif i - nSpace -1 == 3:
-                        num4_Comp += 1
+                        num4_Human_Block += 1
                     break
         
-        # Đếm theo đường chéo C1
+        # ĐẾM THEO ĐƯỜNG CHÉO C1 \
+        b = False
+        if yy > 0 and xx > 0 and chessT[xx - 1][yy - 1] == COMP[0]:
+            b = True
+        if not b and yy + 2 < colT[0] and xx + 2 < rowT[0] and chessT[xx + 1][yy + 1] == ' ' and chessT[xx + 2][yy + 2] == ' ':
+            b = True
+
         a = False
         nSpace = 0
         if yy > 0 and xx > 0 and chessT[xx - 1][yy - 1] == HUMAN[0]:
             a = True
+        if yy == 0 or xx == 0:
+            a = True
+
         for i in range(1, 5):
+            if b:
+                break
             if yy + i < colT[0] and xx + i < rowT[0] and chessT[xx + i][yy + i] == HUMAN[0]:
                 if a:
-                    continue
+                    break
                 else:
                     if chessT[xx + i - 1][yy + i - 1] != ' ':
                         if i - nSpace - 1 == 1:
@@ -173,49 +312,84 @@ def evaluate(state, player, x, y):
                         elif i - nSpace - 1 == 2:
                             num3_Comp_Block += 1
                         elif i - nSpace - 1 == 3:
-                            num4_Comp += 1
+                            num4_Comp_Block += 1
                     else:
                         if i - nSpace - 1 == 1:
                             num2_Comp += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Comp += 1
+                            if xx - 2 >= 0 and yy - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                                num3_Comp += 1
+                            else:
+                                num3_Comp_Block += 1
                     break
-            elif yy + i < colT[0] and xx + i < rowT[0] and chessT[xx + i][yy + i] == ' ':
+            if yy + i < colT[0] and xx + i < rowT[0] and chessT[xx + i][yy + i] == ' ':
                 nSpace += 1
             if i == 4 and yy + i < colT[0] and xx + i < rowT[0]:
-                if i - nSpace == 1:
-                    if a:
-                        num2_Comp_Block += 1
-                    else:
-                        num2_Comp += 1
-                elif i - nSpace == 2:
-                    if a:
+                if (yy + i == colT[0] - 1 or xx + i == rowT[0] - 1) and chessT[xx + i][yy + i] == COMP[0]:
+                    if i - nSpace == 3:
+                        num4_Comp_Block += 1
+                    elif i - nSpace == 2:
                         num3_Comp_Block += 1
-                    else:
-                        num3_Comp += 1
-                elif i - nSpace == 3:
-                    num4_Comp += 1
+                    elif i - nSpace == 1:
+                        num2_Comp_Block += 1
+
+                else:
+                    if i - nSpace == 1:
+                        if a:
+                            num2_Comp_Block += 1
+                        else:
+                            num2_Comp += 1
+                    elif i - nSpace == 2:
+                        if chessT[xx + i][yy + i] == COMP[0]:
+                            num3_Comp_Block += 1
+                        else:
+                            if a:
+                                num3_Comp_Block += 1
+                            else:
+                                num3_Comp += 1
+                    elif i - nSpace == 3:
+                        if chessT[xx + i][yy + i] == COMP[0]:
+                            num4_Comp_Block += 1
+                        else:
+                            if a:
+                                num4_Comp_Block += 1
+                            else:
+                                num4_Comp += 1
             if xx + i >= rowT[0] or yy + i >= colT[0]:
                 if a:
                     break
                 else:
                     if i - nSpace - 1 == 1:
-                        num2_Comp += 1
+                        num2_Comp_Block += 1
                     elif i - nSpace - 1 == 2:
-                        num3_Comp += 1
+                        if chessT[xx + i - 1][yy + i - 1] == ' ' and yy - 2 >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                            num3_Comp += 1
+                        else:
+                            num3_Comp_Block += 1
                     elif i - nSpace - 1 == 3:
-                        num4_Comp += 1
+                        num4_Comp_Block += 1
                     break
         
-        # Đếm theo đường chéo C2
+        # ĐẾM THEO ĐƯỜNG CHÉO C2 /
+        b = False
+        if yy + 1 < colT[0] and xx > 0 and chessT[xx - 1][yy + 1] == COMP[0]:
+            b = True
+        if not b and yy - 2 >= 0 and x + 2 < rowT[0]  and chessT[xx + 1][yy - 1] == ' ' and chessT[xx + 2][yy - 2] == ' ':
+            b = True
+
         a = False
         nSpace = 0
         if yy < colT[0] - 1 and xx > 0 and chessT[xx - 1][yy + 1] == HUMAN[0]:
             a = True
+        if yy == colT[0] - 1 or xx == 0:
+            a = True
+
         for i in range(1, 5):
+            if b:
+                break
             if yy - i >= 0 and xx + i < rowT[0] and chessT[xx + i][yy - i] == HUMAN[0]:
                 if a:
-                    continue
+                    break
                 else:
                     if chessT[xx + i - 1][yy - i + 1] != ' ':
                         if i - nSpace - 1 == 1:
@@ -223,38 +397,62 @@ def evaluate(state, player, x, y):
                         elif i - nSpace - 1 == 2:
                             num3_Comp_Block += 1
                         elif i - nSpace - 1 == 3:
-                            num4_Comp += 1
+                            num4_Comp_Block += 1
                     else:
                         if i - nSpace - 1 == 1:
                             num2_Comp += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Comp += 1
+                            if yy + 2 < colT[0] and xx - 2 >= 0 and chessT[xx - 2][yy + 2] == ' ':
+                                num3_Comp += 1
+                            else:
+                                num3_Comp_Block += 1
                     break
-            elif yy - i >= 0  and xx + i < rowT[0] and chessT[xx + i][yy - i] == ' ':
+            if yy - i >= 0  and xx + i < rowT[0] and chessT[xx + i][yy - i] == ' ':
                 nSpace += 1
             if i == 4 and yy - i >= 0  and xx + i < rowT[0]:
-                if i - nSpace == 1:
-                    if a:
-                        num2_Comp_Block += 1
-                    else:
-                        num2_Comp += 1
-                elif i - nSpace == 2:
-                    if a:
+                if (yy - i == 0 or xx + i == rowT[0] - 1) and chessT[xx + i][yy - i] == COMP[0]:
+                    if i - nSpace == 3:
+                        num4_Comp_Block += 1
+                    elif i - nSpace == 2:
                         num3_Comp_Block += 1
-                    else:
-                        num3_Comp += 1
-                elif i - nSpace == 3:
-                    num4_Comp += 1
+                    elif i - nSpace == 1:
+                        num2_Comp_Block += 1
+
+                else:
+                    if i - nSpace == 1:
+                        if a:
+                            num2_Comp_Block += 1
+                        else:
+                            num2_Comp += 1
+                    elif i - nSpace == 2:
+                        if chessT[xx + i][yy - i] == COMP[0]:
+                            num3_Comp_Block += 1
+                        else:
+                            if a:
+                                num3_Comp_Block += 1
+                            else:
+                                num3_Comp += 1
+                    elif i - nSpace == 3:
+                        if chessT[xx + i][yy - i] == COMP[0]:
+                            num4_Comp_Block += 1
+                        else:
+                            if a:
+                                num4_Comp_Block += 1
+                            else:
+                                num4_Comp += 1
             if xx + i >= rowT[0] or yy - i < 0:
                 if a:
                     break
                 else:
                     if i - nSpace - 1== 1:
-                        num2_Comp += 1
+                        num2_Comp_Block += 1
                     elif i - nSpace - 1== 2:
-                        num3_Comp += 1
+                        if chessT[xx + i - 1][yy - i + 1] == ' ' and yy + 2 < colT[0] and xx - 2 >= 0 and chessT[xx - 2][yy + 2] == ' ':
+                            num3_Comp += 1
+                        else:
+                            num3_Comp_Block += 1
                     elif i - nSpace - 1== 3:
-                        num4_Comp += 1
+                        num4_Comp_Block += 1
                     break
         
         if xx + 1 < rowT[0] and chessT[xx + 1][yy] == HUMAN[0]:
@@ -278,12 +476,23 @@ def evaluate(state, player, x, y):
     for xx, yy in store_Human:
         if xx == -1 or yy == -1:
             break
-        # Đếm theo hàng ngang
+        # ĐẾM THEO HÀNG NGANG --
+        b = False
+        if yy > 0 and chessT[xx][yy - 1] == HUMAN[0]:
+            b = True
+        if not b and yy + 2 < colT[0] and chessT[xx][yy + 1] == ' ' and chessT[xx][yy + 2] == ' ':
+            b = True
+        
         a = False
-        nSpace = 0
         if yy > 0 and chessT[xx][yy - 1] == COMP[0]:
             a = True
+        if yy == 0:
+            a = True
+        nSpace = 0
+
         for i in range(1, 5):
+            if b:
+                break
             if yy + i < colT[0] and chessT[xx][yy + i] == COMP[0]:
                 if a:
                     break
@@ -294,47 +503,83 @@ def evaluate(state, player, x, y):
                         elif i - nSpace - 1 == 2:
                             num3_Human_Block += 1
                         elif i - nSpace - 1 == 3:
-                            num4_Human += 1
+                            num4_Human_Block += 1
                     else:
                         if i - nSpace - 1 == 1:
                             num2_Human += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Human += 1
+                            if yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                                num3_Human += 1
+                            else:
+                                num3_Human_Block += 1
                     break
-            elif yy + i < colT[0] and chessT[xx][yy + i] == ' ':
+
+            if yy + i < colT[0] and chessT[xx][yy + i] == ' ':
                 nSpace += 1
+            
             if i == 4 and yy + i < colT[0]:
-                if i - nSpace == 1:
-                    if a:
-                        num2_Human_Block += 1
-                    else:
-                        num2_Human += 1
-                elif i - nSpace == 2:
-                    if a:
+                if yy + i == colT[0] - 1 and chessT[xx][yy + i] == HUMAN[0]:
+                    if i - nSpace == 3:
+                        num4_Human_Block += 1
+                    elif i - nSpace == 2:
                         num3_Human_Block += 1
-                    else:
-                        num3_Human += 1
-                elif i - nSpace == 3:
-                    num4_Human += 1
+                    elif i - nSpace == 1:
+                        num2_Human_Block += 1
+                else:
+                    if i - nSpace == 1:
+                        if a:
+                            num2_Human_Block += 1
+                        else:
+                            num2_Human += 1
+                    elif i - nSpace == 2:
+                        if chessT[xx][yy + i] == HUMAN[0]:
+                            num3_Human_Block += 1
+                        else:
+                            if a:
+                                num3_Human_Block += 1
+                            else:
+                                num3_Human += 1
+                    elif i - nSpace == 3: 
+                        if chessT[xx][yy + i] == HUMAN[0]:
+                            num4_Human_Block += 1
+                        else:
+                            if a:
+                                num4_Human_Block += 1
+                            else:
+                                num4_Human += 1
             if yy + i >= colT[0]:
                 if a:
                     break
                 else:
                     if i - nSpace - 1 == 1:
-                        num2_Human += 1
+                        num2_Human_Block += 1
                     elif i - nSpace - 1 == 2:
-                        num3_Human += 1
-                    elif i - nSpace - 1 == 3:
-                        num4_Human += 1
+                        if chessT[xx][yy + i - 1] == ' ' and yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                            num3_Human += 1
+                        else:
+                            num3_Human_Block += 1
+                    elif i - nSpace - 1== 3:
+                        num4_Human_Block += 1
                     break
 
 
-        # Đếm theo hàng dọc
+        # ĐẾM THEO HÀNG DỌC |
+        b = False
+        if xx > 0 and chessT[xx - 1][yy] == HUMAN[0]:
+            b = True
+        if not b and xx + 2 < rowT[0] and chessT[xx + 1][yy] == ' ' and chessT[xx + 2][yy] == ' ':
+            b = True
+
         a = False
         nSpace = 0
         if xx > 0 and chessT[xx - 1][yy] == COMP[0]:
             a = True
+        if xx == 0:
+            a = True
+
         for i in range(1, 5):
+            if b:
+                break
             if xx + i < rowT[0] and chessT[xx + i][yy] == COMP[0]:
                 if a:
                     break
@@ -345,49 +590,84 @@ def evaluate(state, player, x, y):
                         elif i - nSpace - 1 == 2:
                             num3_Human_Block += 1
                         elif i - nSpace - 1 == 3:
-                            num4_Human += 1
+                            num4_Human_Block += 1
                     else:
                         if i - nSpace - 1 == 1:
                             num2_Human += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Human += 1
+                            if xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                                num3_Human += 1
+                            else:
+                                num3_Human_Block += 1
                     break
-            elif xx + i < colT[0] and chessT[xx + i][yy] == ' ':
+            if xx + i < rowT[0] and chessT[xx + i][yy] == ' ':
                 nSpace += 1
             if i == 4 and xx + i < rowT[0]:
-                if i - nSpace == 1:
-                    if a:
-                        num2_Human_Block += 1
-                    else:
-                        num2_Human += 1
-                elif i - nSpace == 2:
-                    if a:
+                if xx + i == rowT[0] - 1 and chessT[xx + i][yy] == HUMAN[0]:
+                    if i - nSpace == 3:
+                        num4_Human_Block += 1
+                    elif i - nSpace == 2:
                         num3_Human_Block += 1
-                    else:
-                        num3_Human += 1
-                elif i - nSpace == 3:
-                    num4_Human += 1
+                    elif i - nSpace == 1:
+                        num2_Human_Block += 1
+
+                else:
+                    if i - nSpace == 1:
+                        if a:
+                            num2_Human_Block += 1
+                        else:
+                            num2_Human += 1
+                    elif i - nSpace == 2:
+                        if chessT[xx + i][yy] == HUMAN[0]:
+                            num3_Human_Block += 1
+                        else:
+                            if a:
+                                num3_Human_Block += 1
+                            else:
+                                num3_Human += 1
+                    elif i - nSpace == 3:
+                        if chessT[xx + i][yy] == HUMAN[0]:
+                            num4_Human_Block += 1
+                        else:
+                            if a:
+                                num4_Human_Block += 1
+                            else:
+                                num4_Human += 1
             if xx + i >= rowT[0]:
                 if a:
                     break
                 else:
                     if i - nSpace - 1 == 1:
-                        num2_Human += 1
-                    elif i - nSpace - 1 == 2:
-                        num3_Human += 1
-                    elif i - nSpace - 1 == 3:
-                        num4_Human += 1
+                        num2_Human_Block += 1
+                    elif i - nSpace -1 == 2:
+                        if chessT[xx + i - 1][yy] == ' ' and xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                            num3_Human += 1
+                        else:
+                            num3_Human_Block += 1
+                    elif i - nSpace -1 == 3:
+                        num4_Human_Block += 1
                     break
         
-        # Đếm theo đường chéo C1
+        # ĐẾM THEO ĐƯỜNG CHÉO C1 \
+        b = False
+        if yy > 0 and xx > 0 and chessT[xx - 1][yy - 1] == HUMAN[0]:
+            b = True
+        if not b and yy + 2 < colT[0] and xx + 2 < rowT[0] and chessT[xx + 1][yy + 1] == ' ' and chessT[xx + 2][yy + 2] == ' ':
+            b = True
+
         a = False
         nSpace = 0
         if yy > 0 and xx > 0 and chessT[xx - 1][yy - 1] == COMP[0]:
             a = True
+        if yy == 0 or xx == 0:
+            a = True
+
         for i in range(1, 5):
+            if b:
+                break
             if yy + i < colT[0] and xx + i < rowT[0] and chessT[xx + i][yy + i] == COMP[0]:
                 if a:
-                    continue
+                    break
                 else:
                     if chessT[xx + i - 1][yy + i - 1] != ' ':
                         if i - nSpace - 1 == 1:
@@ -395,49 +675,84 @@ def evaluate(state, player, x, y):
                         elif i - nSpace - 1 == 2:
                             num3_Human_Block += 1
                         elif i - nSpace - 1 == 3:
-                            num4_Human += 1
+                            num4_Human_Block += 1
                     else:
                         if i - nSpace - 1 == 1:
                             num2_Human += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Human += 1
+                            if xx - 2 >= 0 and yy - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                                num3_Human += 1
+                            else:
+                                num3_Human_Block += 1
                     break
-            elif yy + i < colT[0] and xx + i < rowT[0] and chessT[xx + i][yy + i] == ' ':
+            if yy + i < colT[0] and xx + i < rowT[0] and chessT[xx + i][yy + i] == ' ':
                 nSpace += 1
             if i == 4 and yy + i < colT[0] and xx + i < rowT[0]:
-                if i - nSpace == 1:
-                    if a:
-                        num2_Human_Block += 1
-                    else:
-                        num2_Human += 1
-                elif i - nSpace == 2:
-                    if a:
+                if (yy + i == colT[0] - 1 or xx + i == rowT[0] - 1) and chessT[xx + i][yy + i] == HUMAN[0]:
+                    if i - nSpace == 3:
+                        num4_Human_Block += 1
+                    elif i - nSpace == 2:
                         num3_Human_Block += 1
-                    else:
-                        num3_Human += 1
-                elif i - nSpace == 3:
-                    num4_Human += 1
+                    elif i - nSpace == 1:
+                        num2_Human_Block += 1
+
+                else:
+                    if i - nSpace == 1:
+                        if a:
+                            num2_Human_Block += 1
+                        else:
+                            num2_Human += 1
+                    elif i - nSpace == 2:
+                        if chessT[xx + i][yy + i] == HUMAN[0]:
+                            num3_Human_Block += 1
+                        else:
+                            if a:
+                                num3_Human_Block += 1
+                            else:
+                                num3_Human += 1
+                    elif i - nSpace == 3:
+                        if chessT[xx + i][yy + i] == HUMAN[0]:
+                            num4_Human_Block += 1
+                        else:
+                            if a:
+                                num4_Human_Block += 1
+                            else:
+                                num4_Human += 1
             if xx + i >= rowT[0] or yy + i >= colT[0]:
                 if a:
                     break
                 else:
                     if i - nSpace - 1 == 1:
-                        num2_Human += 1
+                        num2_Human_Block += 1
                     elif i - nSpace - 1 == 2:
-                        num3_Human += 1
+                        if chessT[xx + i - 1][yy + i - 1] == ' ' and yy - 2 >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                            num3_Human += 1
+                        else:
+                            num3_Human_Block += 1
                     elif i - nSpace - 1 == 3:
-                        num4_Human += 1
+                        num4_Human_Block += 1
                     break
         
-        # Đếm theo đường chéo C2
+        # ĐẾM THEO ĐƯỜNG CHÉO C2 /
+        b = False
+        if yy + 1 < colT[0] and xx > 0 and chessT[xx - 1][yy + 1] == HUMAN[0]:
+            b = True
+        if not b and yy - 2 >= 0 and x + 2 < rowT[0]  and chessT[xx + 1][yy - 1] == ' ' and chessT[xx + 2][yy - 2] == ' ':
+            b = True
+
         a = False
         nSpace = 0
         if yy < colT[0] - 1 and xx > 0 and chessT[xx - 1][yy + 1] == COMP[0]:
             a = True
+        if yy == colT[0] - 1 or xx == 0:
+            a = True
+
         for i in range(1, 5):
+            if b:
+                break
             if yy - i >= 0 and xx + i < rowT[0] and chessT[xx + i][yy - i] == COMP[0]:
                 if a:
-                    continue
+                    break
                 else:
                     if chessT[xx + i - 1][yy - i + 1] != ' ':
                         if i - nSpace - 1 == 1:
@@ -445,38 +760,62 @@ def evaluate(state, player, x, y):
                         elif i - nSpace - 1 == 2:
                             num3_Human_Block += 1
                         elif i - nSpace - 1 == 3:
-                            num4_Human += 1
+                            num4_Human_Block += 1
                     else:
                         if i - nSpace - 1 == 1:
                             num2_Human += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Human += 1
+                            if yy + 2 < colT[0] and xx - 2 >= 0 and chessT[xx - 2][yy + 2] == ' ':
+                                num3_Human += 1
+                            else:
+                                num3_Human_Block += 1
                     break
-            elif yy - i >= 0  and xx + i < rowT[0] and chessT[xx + i][yy - i] == ' ':
+            if yy - i >= 0  and xx + i < rowT[0] and chessT[xx + i][yy - i] == ' ':
                 nSpace += 1
-            if i == 4 and yy - i >= 0 and xx + i < rowT[0]:
-                if i - nSpace == 1:
-                    if a:
-                        num2_Human_Block += 1
-                    else:
-                        num2_Human += 1
-                elif i - nSpace == 2:
-                    if a:
+            if i == 4 and yy - i >= 0  and xx + i < rowT[0]:
+                if (yy - i == 0 or xx + i == rowT[0] - 1) and chessT[xx + i][yy - i] == HUMAN[0]:
+                    if i - nSpace == 3:
+                        num4_Human_Block += 1
+                    elif i - nSpace == 2:
                         num3_Human_Block += 1
-                    else:
-                        num3_Human += 1
-                elif i - nSpace == 3:
-                    num4_Human += 1
+                    elif i - nSpace == 1:
+                        num2_Human_Block += 1
+
+                else:
+                    if i - nSpace == 1:
+                        if a:
+                            num2_Human_Block += 1
+                        else:
+                            num2_Human += 1
+                    elif i - nSpace == 2:
+                        if chessT[xx + i][yy - i] == HUMAN[0]:
+                            num3_Human_Block += 1
+                        else:
+                            if a:
+                                num3_Human_Block += 1
+                            else:
+                                num3_Human += 1
+                    elif i - nSpace == 3:
+                        if chessT[xx + i][yy - i] == HUMAN[0]:
+                            num4_Human_Block += 1
+                        else:
+                            if a:
+                                num4_Human_Block += 1
+                            else:
+                                num4_Human += 1
             if xx + i >= rowT[0] or yy - i < 0:
                 if a:
                     break
                 else:
-                    if i - nSpace - 1 == 1:
-                        num2_Human += 1
-                    elif i - nSpace - 1 == 2:
-                        num3_Human += 1
-                    elif i - nSpace - 1 == 3:
-                        num4_Human += 1
+                    if i - nSpace - 1== 1:
+                        num2_Human_Block += 1
+                    elif i - nSpace - 1== 2:
+                        if chessT[xx + i - 1][yy - i + 1] == ' ' and yy + 2 < colT[0] and xx - 2 >= 0 and chessT[xx - 2][yy + 2] == ' ':
+                            num3_Human += 1
+                        else:
+                            num3_Human_Block += 1
+                    elif i - nSpace - 1== 3:
+                        num4_Human_Block += 1
                     break
         
         if xx + 1 < rowT[0] and chessT[xx + 1][yy] == COMP[0]:
@@ -496,15 +835,33 @@ def evaluate(state, player, x, y):
         if yy > 0 and xx > 0 and chessT[xx - 1][yy - 1] == COMP[0]:
             near_By_Human += 1
     
+
+    
     if player == HUMAN[0]:
         store_Comp[numMark] = [-1, -1]
-        total_Score_Comp = 2 * near_By_Comp + 20 * num2_Comp_Block + 250 * num2_Comp + 1000 * num3_Comp_Block + 10000 * num3_Comp + 700000 * num4_Comp
-        total_Score_Human = near_By_Human + 70 * num2_Human_Block + 100 * num2_Human + 4000 * num3_Human_Block + 100000 * num3_Human + 500000000 * num4_Human
+        if num4_Human > 0 or num4_Human_Block > 0:
+            return -5555555555555555555564
+        if num4_Comp > 0:
+            return 5555555555555555555
+        if num4_Comp_Block == 0 and num3_Human > 0:
+            return -5555555555555555
+        if num3_Comp >= 2:
+            return 555555555555555555
+        total_Score_Comp = 2 * near_By_Comp + 20 * num2_Comp_Block + 250 * num2_Comp + 1000 * num3_Comp_Block + 100000 * num3_Comp + num4_Comp_Block * 50000000
+        total_Score_Human = near_By_Human + 70 * num2_Human_Block + 100 * num2_Human + 4000 * num3_Human_Block  + num3_Human * 3000000
         return total_Score_Comp - total_Score_Human
     else:
         store_Human[numMark] = [-1, -1]
-        total_Score_Comp = near_By_Comp + 20 * num2_Comp_Block + 250 * num2_Comp + 4000 * num3_Comp_Block + 100000 * num3_Comp + 500000000 * num4_Comp
-        total_Score_Human = 2 * near_By_Human + 70 * num2_Human_Block + 100 * num2_Human + 1000 * num3_Human_Block + 10000 * num3_Human + 700000 * num4_Human
+        if num4_Comp > 0 or num4_Comp_Block > 0:
+            return 5555555555555555555
+        if num4_Human > 0:
+            return -5555555555555555555
+        if num4_Human_Block == 0 and num3_Comp > 0:
+            return 555555555555555555
+        if num3_Human >= 2:
+            return -555555555555555555
+        total_Score_Comp = near_By_Comp + 20 * num2_Comp_Block + 250 * num2_Comp + 4000 * num3_Comp_Block + num3_Comp * 3000000
+        total_Score_Human = 2 * near_By_Human + 70 * num2_Human_Block + 100 * num2_Human + 1000 * num3_Human_Block + 100000 * num3_Human + num4_Human_Block * 50000000
         return total_Score_Comp - total_Score_Human
        
 ## turnXorO string chứa 'x' hoặc 'o' ( lượt tương ứng ), x, y là tọa độ của điểm vừa chọn
@@ -647,6 +1004,98 @@ def get_Point():
         y = random.randint(colT[0] // 2 -1, colT[0] // 2)
         return x, y
 
+# Hàm kiểm tra xem tọa độ có "tệ hay không"
+def checkBad_Point(xx, yy):
+    # 1
+    if xx + 1 < rowT[0] and chessT[xx + 1][yy] != ' ':
+        return False
+    # 2
+    if yy + 1 < colT[0] and chessT[xx][yy + 1] != ' ':
+        return False
+    # 3
+    if xx > 0 and chessT[xx - 1][yy] != ' ':
+        return False
+    # 4
+    if yy > 0 and chessT[xx][yy - 1] != ' ':
+        return False
+    # 5
+    if xx + 1 < rowT[0] and yy + 1 < colT[0] and chessT[xx + 1][yy + 1] != ' ':
+        return False
+    # 6
+    if xx + 1 < rowT[0] and yy > 0 and chessT[xx + 1][yy - 1] != ' ':
+        return False
+    # 7
+    if yy + 1 < colT[0] and xx > 0 and chessT[xx - 1][yy + 1] != ' ':
+        return False
+    # 8
+    if yy > 0 and xx > 0 and chessT[xx - 1][yy - 1] != ' ':
+        return False
+    # # 9
+    # if yy - 2 >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy - 2] != ' ':
+    #     numMark += 1
+    #     break
+    # # 10
+    # if yy - 1 >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy - 1] != ' ':
+    #     numMark += 1
+    #     break
+    # # 11
+    # if yy >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy] != ' ':
+    #     numMark += 1
+    #     break
+    # # 12
+    # if yy + 1 < colT[0] and xx  - 2 >= 0 and chessT[xx - 2][yy + 1] != ' ':
+    #     numMark += 1
+    #     break
+    # # 13
+    # if yy + 2 < colT[0] and xx  - 2 >= 0 and chessT[xx - 2][yy + 2] != ' ':
+    #     numMark += 1
+    #     break
+    # # 14
+    # if yy + 2 < colT[0] and xx - 1 >= 0 and chessT[xx - 1][yy + 2] != ' ':
+    #     numMark += 1
+    #     break
+    # # 15
+    # if yy + 2 < colT[0] and xx >= 0 and chessT[xx][yy + 2] != ' ':
+    #     numMark += 1
+    #     break
+    # # 16
+    # if yy + 2 < colT[0] and xx + 1 < rowT[0] and chessT[xx + 1][yy + 2] != ' ':
+    #     numMark += 1
+    #     break
+    # # 17
+    # if yy + 2 < colT[0] and xx + 2 < rowT[0] and chessT[xx + 2][yy + 2] != ' ':
+    #     numMark += 1
+    #     break
+    # # 18
+    # if yy + 1 < colT[0] and xx + 2 < rowT[0] and chessT[xx + 2][yy + 1] != ' ':
+    #     numMark += 1
+    #     break
+    # # 19
+    # if yy >= 0 and xx + 2 < rowT[0] and chessT[xx + 2][yy] != ' ':
+    #     numMark += 1
+    #     break
+    # # 20
+    # if yy - 1 >= 0 and xx + 2 < rowT[0] and chessT[xx + 2][yy - 1] != ' ':
+    #     numMark += 1
+    #     break
+    # # 21
+    # if yy - 2 >= 0 and xx + 2 < rowT[0] and chessT[xx + 2][yy - 2] != ' ':
+    #     numMark += 1
+    #     break
+    # #  22
+    # if yy - 2 >= 0 and xx + 1 < rowT[0] and chessT[xx + 1][yy - 2] != ' ':
+    #     numMark += 1
+    #     break
+    # # 23
+    # if yy - 2 >= 0 and xx >= 0 and chessT[xx][yy - 2] != ' ':
+    #     numMark += 1
+    #     break
+    # # 24
+    # if yy - 2 >= 0 and xx - 1 >= 0 and chessT[xx - 1][yy - 2] != ' ':
+    #     numMark += 1
+    #     break
+    return True
+
 # Hàm minimax với thuật toán cắt tỉa alpha - beta
 ## Thêm paremeter x, y là tọa độ nước đi vừa đi
 def minimax(state, depth, player, alpha, beta, x, y):
@@ -662,110 +1111,8 @@ def minimax(state, depth, player, alpha, beta, x, y):
     for box in emptyBox(state):
         xx, yy = box[0], box[1]
         # Bỏ qua nếu tọa độ đưa vào đủ " tệ "
-        numMark = 0
-        while True:
-            # 1
-            if xx + 1 < rowT[0] and chessT[xx + 1][yy] != ' ':
-                numMark += 1
-                break
-            # 2
-            if yy + 1 < colT[0] and chessT[xx][yy + 1] != ' ':
-                numMark += 1
-                break
-            # 3
-            if xx > 0 and chessT[xx - 1][yy] != ' ':
-                numMark += 1
-                break
-            # 4
-            if yy > 0 and chessT[xx][yy - 1] != ' ':
-                numMark += 1
-                break
-            # 5
-            if xx + 1 < rowT[0] and yy + 1 < colT[0] and chessT[xx + 1][yy + 1] != ' ':
-                numMark += 1
-                break
-            # 6
-            if xx + 1 < rowT[0] and y > 0 and chessT[xx + 1][yy - 1] != ' ':
-                numMark += 1
-                break
-            # 7
-            if yy + 1 < colT[0] and x > 0 and chessT[xx - 1][yy + 1] != ' ':
-                numMark += 1
-                break
-            # 8
-            if yy > 0 and xx > 0 and chessT[xx - 1][yy - 1] != ' ':
-                numMark += 1
-                break
-            # 9
-            if yy - 2 >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy - 2] != ' ':
-                numMark += 1
-                break
-            # 10
-            if yy - 1 >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy - 1] != ' ':
-                numMark += 1
-                break
-            # 11
-            if yy >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy] != ' ':
-                numMark += 1
-                break
-            # 12
-            if yy + 1 < colT[0] and xx  - 2 >= 0 and chessT[xx - 2][yy + 1] != ' ':
-                numMark += 1
-                break
-            # 13
-            if yy + 2 < colT[0] and xx  - 2 >= 0 and chessT[xx - 2][yy + 2] != ' ':
-                numMark += 1
-                break
-            # 14
-            if yy + 2 < colT[0] and xx - 1 >= 0 and chessT[xx - 1][yy + 2] != ' ':
-                numMark += 1
-                break
-            # 15
-            if yy + 2 < colT[0] and xx >= 0 and chessT[xx][yy + 2] != ' ':
-                numMark += 1
-                break
-            # 16
-            if yy + 2 < colT[0] and xx + 1 < rowT[0] and chessT[xx + 1][yy + 2] != ' ':
-                numMark += 1
-                break
-            # 17
-            if yy + 2 < colT[0] and xx + 2 < rowT[0] and chessT[xx + 2][yy + 2] != ' ':
-                numMark += 1
-                break
-            # 18
-            if yy + 1 < colT[0] and xx + 2 < rowT[0] and chessT[xx + 2][yy + 1] != ' ':
-                numMark += 1
-                break
-            # 19
-            if yy >= 0 and xx + 2 < rowT[0] and chessT[xx + 2][yy] != ' ':
-                numMark += 1
-                break
-            # 20
-            if yy - 1 >= 0 and xx + 2 < rowT[0] and chessT[xx + 2][yy - 1] != ' ':
-                numMark += 1
-                break
-            # 21
-            if yy - 2 >= 0 and xx + 2 < rowT[0] and chessT[xx + 2][yy - 2] != ' ':
-                numMark += 1
-                break
-            #  22
-            if yy - 2 >= 0 and xx + 1 < rowT[0] and chessT[xx + 1][yy - 2] != ' ':
-                numMark += 1
-                break
-            # 23
-            if yy - 2 >= 0 and xx >= 0 and chessT[xx][yy - 2] != ' ':
-                numMark += 1
-                break
-            # 24
-            if yy - 2 >= 0 and xx - 1 >= 0 and chessT[xx - 1][yy - 2] != ' ':
-                numMark += 1
-                break
-            if numMark == 0:
-                break
-
-        if numMark == 0:
+        if checkBad_Point(xx, yy):
             continue
-
         state[xx][yy] = player
         score = minimax(state, depth - 1, HUMAN[0] if player == COMP[0] else COMP[0], alpha, beta, xx, yy)
         state[xx][yy] = ' '
