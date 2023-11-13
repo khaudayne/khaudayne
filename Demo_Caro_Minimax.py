@@ -22,19 +22,6 @@ def evaluate(state, player, x, y):
             return math.inf
         else:
             return -math.inf # Trả về âm vô cùng nếu người thắng
-    
-    # Thực hiện chèn điểm vừa đánh ( nhưng chưa được cho vào store ) tạm thời vào store để tính score của bàn cờ
-    ## Duyệt hết danh sách store cho tới khi gặp phần tử [-1, -1]
-    numMark = 0
-    if player == COMP[0]:
-        while store_Human[numMark] != [-1, -1]:
-            numMark += 1
-        store_Human[numMark] = [x, y]
-    else:
-        while store_Comp[numMark] != [-1, -1]:
-            numMark += 1
-        store_Comp[numMark] = [x, y]
-
     # Tổng điểm của máy
     total_Score_Comp = 0
     # Tổng điểm của người
@@ -124,7 +111,14 @@ def evaluate(state, player, x, y):
                         if i - nSpace - 1 == 1:
                             num2_Comp_Block += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Comp_Block += 1
+                            # Trường hợp luôn tạo thành num3_Bloc
+                            ## _x_xxo
+                            if nSpace == 1:
+                                num3_Comp_Block += 1
+                            # Trường hợp chỉ tạo thành num3_Block điều kiện đặc biệt
+                            ## Ví dụ __xxxo (tạo thành),, o_xxxo (loại)
+                            elif yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                                num3_Comp_Block += 1
                         elif i - nSpace - 1 == 3:
                             num4_Comp_Block += 1
                     ## Nếu không phải ký tự máy thì không bị chặn đầu nào ( _xxx_o__)
@@ -168,7 +162,7 @@ def evaluate(state, player, x, y):
                         else:
                             if a:
                                 num3_Comp_Block += 1
-                            else:
+                            else: 
                                 num3_Comp += 1
                     elif i - nSpace == 3:
                         # Trường hợp đặc biệt, kể cả có ký tự người ở trước hay không thì 4 ký tự máy trong 5 ô liên tiếp vẫn có thể bị block
@@ -191,10 +185,23 @@ def evaluate(state, player, x, y):
                     elif i - nSpace - 1 == 2:
                         # Trường hợp đặc biệt: phần tử cuối cùng trước khi chạm thành bảng là phần tử trống -> chuỗi 3 liên tục có thể mở rộng thành num4
                         ## Ví dụ: __xxx_| -> _xxxx_|
-                        if chessT[xx][yy + i - 1] == ' ' and yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
-                            num3_Comp += 1
+                        if chessT[xx][yy + i - 1] == ' ':
+                            # Trường hợp tạo thành num 3 trong điều kiện đặc biệt
+                            ## Ví dụ __xxx_|
+                            if yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                                num3_Comp += 1
+                            ## Không tạo được thành num 3: o_xxx_|
+                            else:
+                                num3_Comp_Block += 1
                         else:
-                            num3_Comp_Block += 1
+                            # Trường hợp nếu có khoảng trắng -> luôn luôn tạo num3_Block
+                            ## Ví dụ o_xx_x|
+                            if nSpace == 1:
+                                num3_Comp_Block += 1
+                            # Nếu không có khoảng trắng thì tạo num3_Block trong điều kiện đặc biệt
+                            ## Ví dụ: __xxx| (tạo thành) ,, o_xxx| (loại)
+                            elif yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                                num3_Comp_Block += 1
                     elif i - nSpace - 1== 3: # Duy nhất trường hợp: __xxxx|
                         num4_Comp_Block += 1
                     break
@@ -225,7 +232,10 @@ def evaluate(state, player, x, y):
                         if i - nSpace - 1 == 1:
                             num2_Comp_Block += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Comp_Block += 1
+                            if nSpace == 1:
+                                num3_Comp_Block += 1
+                            elif xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                                num3_Comp_Block += 1
                         elif i - nSpace - 1 == 3:
                             num4_Comp_Block += 1
                     else:
@@ -275,14 +285,20 @@ def evaluate(state, player, x, y):
                     break
                 else:
                     if i - nSpace - 1 == 1:
-                        num2_Human_Block += 1
+                        num2_Comp_Block += 1
                     elif i - nSpace - 1 == 2:
-                        if chessT[xx + i - 1][yy] == ' ' and xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
-                            num3_Comp += 1
+                        if chessT[xx + i - 1][yy] == ' ':
+                            if xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                                num3_Comp += 1
+                            else:
+                                num3_Comp_Block += 1
                         else:
-                            num3_Comp_Block += 1
+                            if nSpace == 1:
+                                num3_Comp_Block += 1
+                            elif xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                                num3_Comp_Block += 1
                     elif i - nSpace -1 == 3:
-                        num4_Human_Block += 1
+                        num4_Comp_Block += 1
                     break
         
         # ĐẾM THEO ĐƯỜNG CHÉO C1 \
@@ -310,7 +326,10 @@ def evaluate(state, player, x, y):
                         if i - nSpace - 1 == 1:
                             num2_Comp_Block += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Comp_Block += 1
+                            if nSpace == 1:
+                                num3_Comp_Block += 1
+                            elif xx - 2 >= 0 and yy - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                                num3_Comp_Block += 1
                         elif i - nSpace - 1 == 3:
                             num4_Comp_Block += 1
                     else:
@@ -362,10 +381,16 @@ def evaluate(state, player, x, y):
                     if i - nSpace - 1 == 1:
                         num2_Comp_Block += 1
                     elif i - nSpace - 1 == 2:
-                        if chessT[xx + i - 1][yy + i - 1] == ' ' and yy - 2 >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
-                            num3_Comp += 1
+                        if chessT[xx + i - 1][yy + i - 1] == ' ':
+                            if xx - 2 >= 0 and yy - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                                num3_Comp += 1
+                            else:
+                                num3_Comp_Block += 1
                         else:
-                            num3_Comp_Block += 1
+                            if nSpace == 1:
+                                num3_Comp_Block += 1
+                            elif xx - 2 >= 0 and yy - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                                num3_Comp_Block += 1
                     elif i - nSpace - 1 == 3:
                         num4_Comp_Block += 1
                     break
@@ -374,7 +399,7 @@ def evaluate(state, player, x, y):
         b = False
         if yy + 1 < colT[0] and xx > 0 and chessT[xx - 1][yy + 1] == COMP[0]:
             b = True
-        if not b and yy - 2 >= 0 and x + 2 < rowT[0]  and chessT[xx + 1][yy - 1] == ' ' and chessT[xx + 2][yy - 2] == ' ':
+        if not b and yy - 2 >= 0 and xx + 2 < rowT[0]  and chessT[xx + 1][yy - 1] == ' ' and chessT[xx + 2][yy - 2] == ' ':
             b = True
 
         a = False
@@ -395,7 +420,10 @@ def evaluate(state, player, x, y):
                         if i - nSpace - 1 == 1:
                             num2_Comp_Block += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Comp_Block += 1
+                            if nSpace == 1:
+                                num3_Comp_Block += 1
+                            elif xx - 2 >= 0 and yy + 2 < colT[0] and chessT[xx - 2][yy + 2] == ' ':
+                                num3_Comp_Block += 1
                         elif i - nSpace - 1 == 3:
                             num4_Comp_Block += 1
                     else:
@@ -447,10 +475,16 @@ def evaluate(state, player, x, y):
                     if i - nSpace - 1== 1:
                         num2_Comp_Block += 1
                     elif i - nSpace - 1== 2:
-                        if chessT[xx + i - 1][yy - i + 1] == ' ' and yy + 2 < colT[0] and xx - 2 >= 0 and chessT[xx - 2][yy + 2] == ' ':
-                            num3_Comp += 1
+                        if chessT[xx + i - 1][yy - i + 1] == ' ':
+                            if xx - 2 >= 0 and yy + 2 < colT[0] and chessT[xx - 2][yy + 2] == ' ':
+                                num3_Comp += 1
+                            else:
+                                num3_Comp_Block += 1
                         else:
-                            num3_Comp_Block += 1
+                            if nSpace == 1:
+                                num3_Comp_Block += 1
+                            elif xx - 2 >= 0 and yy + 2 < colT[0] and chessT[xx - 2][yy + 2] == ' ':
+                                num3_Comp_Block += 1
                     elif i - nSpace - 1== 3:
                         num4_Comp_Block += 1
                     break
@@ -465,9 +499,9 @@ def evaluate(state, player, x, y):
             near_By_Comp += 1
         if xx + 1 < rowT[0] and yy + 1 < colT[0] and chessT[xx + 1][yy + 1] == HUMAN[0]:
             near_By_Comp += 1
-        if xx + 1 < rowT[0] and y > 0 and chessT[xx + 1][yy - 1] == HUMAN[0]:
+        if xx + 1 < rowT[0] and yy > 0 and chessT[xx + 1][yy - 1] == HUMAN[0]:
             near_By_Comp += 1
-        if yy + 1 < colT[0] and x > 0 and chessT[xx - 1][yy + 1] == HUMAN[0]:
+        if yy + 1 < colT[0] and xx > 0 and chessT[xx - 1][yy + 1] == HUMAN[0]:
             near_By_Comp += 1
         if yy > 0 and xx > 0 and chessT[xx - 1][yy - 1] == HUMAN[0]:
             near_By_Comp += 1
@@ -477,12 +511,13 @@ def evaluate(state, player, x, y):
         if xx == -1 or yy == -1:
             break
         # ĐẾM THEO HÀNG NGANG --
+        # ĐẾM THEO HÀNG NGANG --
         b = False
         if yy > 0 and chessT[xx][yy - 1] == HUMAN[0]:
             b = True
         if not b and yy + 2 < colT[0] and chessT[xx][yy + 1] == ' ' and chessT[xx][yy + 2] == ' ':
             b = True
-        
+
         a = False
         if yy > 0 and chessT[xx][yy - 1] == COMP[0]:
             a = True
@@ -501,7 +536,10 @@ def evaluate(state, player, x, y):
                         if i - nSpace - 1 == 1:
                             num2_Human_Block += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Human_Block += 1
+                            if nSpace == 1:
+                                num3_Human_Block += 1
+                            elif yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                                num3_Human_Block += 1
                         elif i - nSpace - 1 == 3:
                             num4_Human_Block += 1
                     else:
@@ -511,9 +549,8 @@ def evaluate(state, player, x, y):
                             if yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
                                 num3_Human += 1
                             else:
-                                num3_Human_Block += 1
+                                num3_Human_Block += 1 
                     break
-
             if yy + i < colT[0] and chessT[xx][yy + i] == ' ':
                 nSpace += 1
             
@@ -525,6 +562,7 @@ def evaluate(state, player, x, y):
                         num3_Human_Block += 1
                     elif i - nSpace == 1:
                         num2_Human_Block += 1
+
                 else:
                     if i - nSpace == 1:
                         if a:
@@ -537,9 +575,9 @@ def evaluate(state, player, x, y):
                         else:
                             if a:
                                 num3_Human_Block += 1
-                            else:
+                            else: 
                                 num3_Human += 1
-                    elif i - nSpace == 3: 
+                    elif i - nSpace == 3:
                         if chessT[xx][yy + i] == HUMAN[0]:
                             num4_Human_Block += 1
                         else:
@@ -554,11 +592,17 @@ def evaluate(state, player, x, y):
                     if i - nSpace - 1 == 1:
                         num2_Human_Block += 1
                     elif i - nSpace - 1 == 2:
-                        if chessT[xx][yy + i - 1] == ' ' and yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
-                            num3_Human += 1
+                        if chessT[xx][yy + i - 1] == ' ':
+                            if yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                                num3_Human += 1
+                            else:
+                                num3_Human_Block += 1
                         else:
-                            num3_Human_Block += 1
-                    elif i - nSpace - 1== 3:
+                            if nSpace == 1:
+                                num3_Human_Block += 1
+                            elif yy - 2 >= 0 and chessT[xx][yy - 2] == ' ':
+                                num3_Human_Block += 1
+                    elif i - nSpace - 1== 3: 
                         num4_Human_Block += 1
                     break
 
@@ -588,7 +632,10 @@ def evaluate(state, player, x, y):
                         if i - nSpace - 1 == 1:
                             num2_Human_Block += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Human_Block += 1
+                            if nSpace == 1:
+                                num3_Human_Block += 1
+                            elif xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                                num3_Human_Block += 1
                         elif i - nSpace - 1 == 3:
                             num4_Human_Block += 1
                     else:
@@ -639,11 +686,17 @@ def evaluate(state, player, x, y):
                 else:
                     if i - nSpace - 1 == 1:
                         num2_Human_Block += 1
-                    elif i - nSpace -1 == 2:
-                        if chessT[xx + i - 1][yy] == ' ' and xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
-                            num3_Human += 1
+                    elif i - nSpace - 1 == 2:
+                        if chessT[xx + i - 1][yy] == ' ':
+                            if xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                                num3_Human += 1
+                            else:
+                                num3_Human_Block += 1
                         else:
-                            num3_Human_Block += 1
+                            if nSpace == 1:
+                                num3_Human_Block += 1
+                            elif xx - 2 >= 0 and chessT[xx - 2][yy] == ' ':
+                                num3_Human_Block += 1
                     elif i - nSpace -1 == 3:
                         num4_Human_Block += 1
                     break
@@ -673,7 +726,10 @@ def evaluate(state, player, x, y):
                         if i - nSpace - 1 == 1:
                             num2_Human_Block += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Human_Block += 1
+                            if nSpace == 1:
+                                num3_Human_Block += 1
+                            elif xx - 2 >= 0 and yy - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                                num3_Human_Block += 1
                         elif i - nSpace - 1 == 3:
                             num4_Human_Block += 1
                     else:
@@ -725,10 +781,16 @@ def evaluate(state, player, x, y):
                     if i - nSpace - 1 == 1:
                         num2_Human_Block += 1
                     elif i - nSpace - 1 == 2:
-                        if chessT[xx + i - 1][yy + i - 1] == ' ' and yy - 2 >= 0 and xx - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
-                            num3_Human += 1
+                        if chessT[xx + i - 1][yy + i - 1] == ' ':
+                            if xx - 2 >= 0 and yy - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                                num3_Human += 1
+                            else:
+                                num3_Human_Block += 1
                         else:
-                            num3_Human_Block += 1
+                            if nSpace == 1:
+                                num3_Human_Block += 1
+                            elif xx - 2 >= 0 and yy - 2 >= 0 and chessT[xx - 2][yy - 2] == ' ':
+                                num3_Human_Block += 1
                     elif i - nSpace - 1 == 3:
                         num4_Human_Block += 1
                     break
@@ -737,7 +799,7 @@ def evaluate(state, player, x, y):
         b = False
         if yy + 1 < colT[0] and xx > 0 and chessT[xx - 1][yy + 1] == HUMAN[0]:
             b = True
-        if not b and yy - 2 >= 0 and x + 2 < rowT[0]  and chessT[xx + 1][yy - 1] == ' ' and chessT[xx + 2][yy - 2] == ' ':
+        if not b and yy - 2 >= 0 and xx + 2 < rowT[0]  and chessT[xx + 1][yy - 1] == ' ' and chessT[xx + 2][yy - 2] == ' ':
             b = True
 
         a = False
@@ -758,7 +820,10 @@ def evaluate(state, player, x, y):
                         if i - nSpace - 1 == 1:
                             num2_Human_Block += 1
                         elif i - nSpace - 1 == 2:
-                            num3_Human_Block += 1
+                            if nSpace == 1:
+                                num3_Human_Block += 1
+                            elif xx - 2 >= 0 and yy + 2 < colT[0] and chessT[xx - 2][yy + 2] == ' ':
+                                num3_Human_Block += 1
                         elif i - nSpace - 1 == 3:
                             num4_Human_Block += 1
                     else:
@@ -810,10 +875,16 @@ def evaluate(state, player, x, y):
                     if i - nSpace - 1== 1:
                         num2_Human_Block += 1
                     elif i - nSpace - 1== 2:
-                        if chessT[xx + i - 1][yy - i + 1] == ' ' and yy + 2 < colT[0] and xx - 2 >= 0 and chessT[xx - 2][yy + 2] == ' ':
-                            num3_Human += 1
+                        if chessT[xx + i - 1][yy - i + 1] == ' ':
+                            if xx - 2 >= 0 and yy + 2 < colT[0] and chessT[xx - 2][yy + 2] == ' ':
+                                num3_Human += 1
+                            else:
+                                num3_Human_Block += 1
                         else:
-                            num3_Human_Block += 1
+                            if nSpace == 1:
+                                num3_Human_Block += 1
+                            elif xx - 2 >= 0 and yy + 2 < colT[0] and chessT[xx - 2][yy + 2] == ' ':
+                                num3_Human_Block += 1
                     elif i - nSpace - 1== 3:
                         num4_Human_Block += 1
                     break
@@ -828,9 +899,9 @@ def evaluate(state, player, x, y):
             near_By_Human += 1
         if xx + 1 < rowT[0] and yy + 1 < colT[0] and chessT[xx + 1][yy + 1] == COMP[0]:
             near_By_Human += 1
-        if xx + 1 < rowT[0] and y > 0 and chessT[xx + 1][yy - 1] == COMP[0]:
+        if xx + 1 < rowT[0] and yy > 0 and chessT[xx + 1][yy - 1] == COMP[0]:
             near_By_Human += 1
-        if yy + 1 < colT[0] and x > 0 and chessT[xx - 1][yy + 1] == COMP[0]:
+        if yy + 1 < colT[0] and xx > 0 and chessT[xx - 1][yy + 1] == COMP[0]:
             near_By_Human += 1
         if yy > 0 and xx > 0 and chessT[xx - 1][yy - 1] == COMP[0]:
             near_By_Human += 1
@@ -838,30 +909,32 @@ def evaluate(state, player, x, y):
 
     
     if player == HUMAN[0]:
-        store_Comp[numMark] = [-1, -1]
         if num4_Human > 0 or num4_Human_Block > 0:
-            return -5555555555555555555564
+            return -5555555555555555555
         if num4_Comp > 0:
             return 5555555555555555555
+        if num4_Comp_Block >= 2:
+            return 5555555555555555555
         if num4_Comp_Block == 0 and num3_Human > 0:
-            return -5555555555555555
-        if num3_Comp >= 2:
+            return -555555555555555555
+        if num3_Comp >= 2 and num3_Human == 0 and num3_Human_Block == 0:
             return 555555555555555555
-        total_Score_Comp = 2 * near_By_Comp + 20 * num2_Comp_Block + 250 * num2_Comp + 1000 * num3_Comp_Block + 100000 * num3_Comp + num4_Comp_Block * 50000000
-        total_Score_Human = near_By_Human + 70 * num2_Human_Block + 100 * num2_Human + 4000 * num3_Human_Block  + num3_Human * 3000000
+        total_Score_Comp = 2 * near_By_Comp + 20 * num2_Comp_Block + 100 * num2_Comp + 3000 * num3_Comp_Block + 300000 * num3_Comp + num4_Comp_Block * 8000000
+        total_Score_Human = near_By_Human + 70 * num2_Human_Block + 250 * num2_Human + 4000 * num3_Human_Block  + num3_Human * 30000000
         return total_Score_Comp - total_Score_Human
     else:
-        store_Human[numMark] = [-1, -1]
         if num4_Comp > 0 or num4_Comp_Block > 0:
             return 5555555555555555555
         if num4_Human > 0:
             return -5555555555555555555
+        if num4_Human_Block >= 2:
+            return -5555555555555555555
         if num4_Human_Block == 0 and num3_Comp > 0:
             return 555555555555555555
-        if num3_Human >= 2:
+        if num3_Human >= 2 and num3_Comp == 0 and num3_Comp_Block == 0:
             return -555555555555555555
-        total_Score_Comp = near_By_Comp + 20 * num2_Comp_Block + 250 * num2_Comp + 4000 * num3_Comp_Block + num3_Comp * 3000000
-        total_Score_Human = 2 * near_By_Human + 70 * num2_Human_Block + 100 * num2_Human + 1000 * num3_Human_Block + 100000 * num3_Human + num4_Human_Block * 50000000
+        total_Score_Human = 2 * near_By_Human + 70 * num2_Human_Block + 250 * num2_Human + 3000 * num3_Human_Block + 300000 * num3_Human + num4_Human_Block * 8000000
+        total_Score_Comp = near_By_Comp + 20 * num2_Comp_Block + 100 * num2_Comp + 4000 * num3_Comp_Block + num3_Comp * 30000000
         return total_Score_Comp - total_Score_Human
        
 ## turnXorO string chứa 'x' hoặc 'o' ( lượt tương ứng ), x, y là tọa độ của điểm vừa chọn
@@ -1108,14 +1181,30 @@ def minimax(state, depth, player, alpha, beta, x, y):
         sc = evaluate(state, player, x, y)
         return [-1, -1, sc]
     
+    numMark = 0
+    if player == COMP[0]:
+        while store_Comp[numMark] != [-1, -1]:
+            numMark += 1
+    else:
+        while store_Human[numMark] != [-1, -1]:
+            numMark += 1
     for box in emptyBox(state):
         xx, yy = box[0], box[1]
         # Bỏ qua nếu tọa độ đưa vào đủ " tệ "
         if checkBad_Point(xx, yy):
             continue
+        if player == COMP[0]:
+            store_Comp[numMark] = [xx, yy]
+        else:
+            store_Human[numMark] = [xx, yy]
+        
         state[xx][yy] = player
         score = minimax(state, depth - 1, HUMAN[0] if player == COMP[0] else COMP[0], alpha, beta, xx, yy)
         state[xx][yy] = ' '
+        if player == COMP[0]:
+            store_Comp[numMark] = [-1, -1]
+        else:
+            store_Human[numMark] = [-1, -1]
         score[0], score[1] = xx, yy
 
         if player == COMP[0]:
