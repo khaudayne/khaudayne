@@ -907,21 +907,38 @@ def evaluate(state, player, x, y):
             near_By_Human += 1
     
 
-    
+    # Công thức tính điểm bàn cờ của hàm heuristic h(n)
+    ## Trong trường hợp player là người, tức nước đi vừa rồi là của máy đánh
     if player == HUMAN[0]:
+        # Nếu máy đánh xong mà bàn cờ vẫn còn 4 ký tự người liên tục ( dù bị block hay không ) thì người thắng
         if num4_Human > 0 or num4_Human_Block > 0:
             return -5555555555555555555
+        # Nếu máy đánh được nước dẫn tới 4 ký tự máy liên tục không bị chặn thì máy thắng
         if num4_Comp > 0:
             return 5555555555555555555
+        # Nếu máy đánh được nước dẫn tới nước đôi 4 ký tự máy liên tục bị chặn thì máy thắng
         if num4_Comp_Block >= 2:
             return 5555555555555555555
+        # Nếu máy không có nước 4 nào và người có nước 3 không bị chặn thì người thắng
+        ## Giải thích: tới phiên của người sẽ đánh biến nước 3 thành nước 4 không bị chặn, khi ấy người sẽ thắng
         if num4_Comp_Block == 0 and num3_Human > 0:
             return -555555555555555555
+        # Nếu máy có nước đôi 3 ký tự không bị chặn trong khi đó người không có nước 3 nào thì máy sẽ thắng
+        ## Trong trường hợp người có nước 3 chưa chắc máy đã thắng
+        ### Ví dụ: xxx          ->       xxx        ->         xxx        ->       oxxx
+                #    x                     x                     x                    x
+                #    x                     x                     x                    x
+                #    _ooox                 oooox                xoooox               xooox
+        ### Thậm chí máy còn có thể thua ngược nếu như không có quân x ở cuối chuỗi 3 
         if num3_Comp >= 2 and num3_Human == 0 and num3_Human_Block == 0:
             return 555555555555555555
+        
+        # Công thức tính điểm tổng quát dưới đây trong trường hợp 2 bên chưa chắc ai thắng có thể sẽ gặp nhiều sai sót, trong quá trình làm việc sẽ tiếp tục cập nhật
+        # và đánh giá thay đổi hệ số của các chuỗi mỗi quân cờ
         total_Score_Comp = 2 * near_By_Comp + 20 * num2_Comp_Block + 100 * num2_Comp + 3000 * num3_Comp_Block + 300000 * num3_Comp + num4_Comp_Block * 30000000
         total_Score_Human = near_By_Human + 70 * num2_Human_Block + 250 * num2_Human + 4000 * num3_Human_Block  + num3_Human * 30000000
         return total_Score_Comp - total_Score_Human
+    ## Trường hợp với người cũng tương tự
     else:
         if num4_Comp > 0 or num4_Comp_Block > 0:
             return 5555555555555555555
@@ -1169,18 +1186,26 @@ def checkBad_Point(xx, yy):
     #     break
     return True
 
-# Hàm minimax với thuật toán cắt tỉa alpha - beta
-## Thêm paremeter x, y là tọa độ nước đi vừa đi
+#chương trình nay coi máy là MAximizer và người chơi là Minimizer
+#vì thế khởi tạo giá trị ban đầu cho MAximizer là -inf và Minimizer là +inf
+#maximizer sẽ tìm giá trị lớn nhất trong các giá trị trả về của các nước đi
+#Sử dụng thuật toán quay lui, duyệt theo chiều sâu
+
+#alpha là giá trị lớn nhất tìm được trong các nước đi của Maximizer
+#beta là giá trị nhỏ nhất tìm được trong các nước đi của Minimizer
+#nếu alpha >= beta nghĩa là ở nhánh đó, Minimizer sẽ không chọn nước đi nào tốt hơn
+#nên ta cắt tỉa nhánh đó
+## Ngoài alpha và beta, trong hàm còn có các parameter là state tức bàn cờ hiện tại, player tức chỉ tới nước đi của ai, x và y là tọa độ nước đi của người trước player
 def minimax(state, depth, player, alpha, beta, x, y):
     if player == COMP[0]:
         best = [-1 , -1, -math.inf]
     else:
         best = [-1, -1, math.inf]
-    
+    # Nếu độ sâu giảm tới 0 ( đoán trước tối đa depth nước đi ) hoặc bàn cờ đã hết cờ thì trả về giá trị của bàn cờ
     if depth == 0 or gameOver(player, x, y):
         sc = evaluate(state, player, x, y)
         return [-1, -1, sc]
-    
+    # numMark là biến đánh dấu vị trí để có thể lưu trữ nước đi cho player tại vị trí đầu tiên tìm thấy [-1, -1] trong store_
     numMark = 0
     if player == COMP[0]:
         while store_Comp[numMark] != [-1, -1]:
@@ -1188,21 +1213,25 @@ def minimax(state, depth, player, alpha, beta, x, y):
     else:
         while store_Human[numMark] != [-1, -1]:
             numMark += 1
+    # Duyệt hết các nước có thể đi, danh sách các điểm có thể đi lấy được qua hàm emptyBox(state)
     for box in emptyBox(state):
         xx, yy = box[0], box[1]
         # Bỏ qua nếu tọa độ đưa vào đủ " tệ "
         if checkBad_Point(xx, yy):
             continue
+        # Nhét nước đi này vào kho chứa các nước đã đi của player để có thể đánh giá bàn cờ ở hàm evaluate(state, player, x, y)
         if player == COMP[0]:
             store_Comp[numMark] = [xx, yy]
         else:
             store_Human[numMark] = [xx, yy]
-        
+        # Đánh dấu vào bàn cờ nước vừa đi
         state[xx][yy] = player
         score = minimax(state, depth - 1, HUMAN[0] if player == COMP[0] else COMP[0], alpha, beta, xx, yy)
+        # Bỏ đánh dấu bàn cờ trong quay lui
         state[xx][yy] = ' '
         score[0], score[1] = xx, yy
 
+        # Cập nhật alpha và beta sau mỗi lần tìm kiếm trong 1 nhánh của minimax
         if player == COMP[0]:
             if score[2] > best[2]:
                 best = score
@@ -1214,7 +1243,7 @@ def minimax(state, depth, player, alpha, beta, x, y):
 
         if beta <= alpha:
             break  # Cắt tỉa alpha - beta
-
+    # Xóa nước đi vừa rồi của player khỏi store_
     if player == COMP[0]:
         store_Comp[numMark] = [-1, -1]
     else:
@@ -1276,14 +1305,16 @@ def clicked(btn, x, y):
         return
     if checkChessT[x][y]:
         return
+    # Đánh dấu vị trí bàn cờ trên giao diện đã được chọn
     checkChessT[x][y] = True
+    # Bổ sung nước đi vừa đánh vào store_ của player tương ứng
     numPlay[0] += 1
     if numPlay[0] % 2 == 0:
         if typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh O':
             store_Comp[numPlay[0]//2] = [x, y]
         if typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh X':
             store_Human[numPlay[0]//2] = [x, y]
-
+        # Một số hàm xử lý giao diện của bàn cờ khi được nhấn vào
         btn.unbind("<Leave>")
         btn.unbind("<Enter>")
         chessT[x][y] = 'x'
@@ -1344,7 +1375,7 @@ def clicked(btn, x, y):
         if numPlay[0] == maxNumPlay[0]:
             turnWho.config(text='Hòa!')
             return
-        
+        # Tính toán tới lượt đánh của ai
         if typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh O':
             turnWho.config(text = 'Tới lượt của bạn', font=('Arial, 15'))
 
@@ -1357,7 +1388,7 @@ def clicked(btn, x, y):
         else:
             turnWho.config(text = 'Tới lượt của o', font=('Arial, 15'))
 
-        
+    # Cũng tương tự như trên   
     else:
         if typeG[0] == 'Chơi với máy' and choose_X_O[0] == 'Đánh X':
             store_Comp[numPlay[0]//2] = [x, y]
@@ -1434,9 +1465,7 @@ def clicked(btn, x, y):
         else:
             turnWho.config(text = 'Tới lượt của x', font=('Arial, 15'))
     
-
-
-    
+   
 # Hàm xóa hết giao diện bàn cờ khi ấn núi chơi 
 def desChild():
     for widget in fr.winfo_children():
@@ -1464,7 +1493,8 @@ def btnPlay():
     typeG[0] = cbb_Type_Play.get()
     if typeG[0] == 'Chơi với máy':
         choose_X_O[0] = cbb_X_O.get()
-    # Khởi tạo bàn cờ và số lượt đầu trận
+    # Khởi tạo toàn bộ giá trị ban đầu của trò chơi, bao gồm có:
+    ## Số hàng, cột, tổng lượt đánh, lượt đánh tối đa, bàn cờ, store_ của máy và người
     numPlay[0] = -1
     rowT[0] = roW
     colT[0] = coL
