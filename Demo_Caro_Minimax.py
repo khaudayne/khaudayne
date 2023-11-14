@@ -16,7 +16,7 @@ def on_leave(e):
 # Hàm heuristic h(n) đánh giá giá trị của bàn cờ:
 def evaluate(state, player, x, y):
     # Nếu hết cờ
-    if x != -1 and y != -1 and checkEnd(state, x, y)[0]:
+    if x != -1 and y != -1 and checkEnd(HUMAN[0] if player == COMP[0] else COMP[0], x, y)[0]:
         # Trả về vô cùng nếu máy thắng
         if player == HUMAN[0]:
             return math.inf
@@ -919,7 +919,7 @@ def evaluate(state, player, x, y):
             return -555555555555555555
         if num3_Comp >= 2 and num3_Human == 0 and num3_Human_Block == 0:
             return 555555555555555555
-        total_Score_Comp = 2 * near_By_Comp + 20 * num2_Comp_Block + 100 * num2_Comp + 3000 * num3_Comp_Block + 300000 * num3_Comp + num4_Comp_Block * 8000000
+        total_Score_Comp = 2 * near_By_Comp + 20 * num2_Comp_Block + 100 * num2_Comp + 3000 * num3_Comp_Block + 300000 * num3_Comp + num4_Comp_Block * 30000000
         total_Score_Human = near_By_Human + 70 * num2_Human_Block + 250 * num2_Human + 4000 * num3_Human_Block  + num3_Human * 30000000
         return total_Score_Comp - total_Score_Human
     else:
@@ -933,7 +933,7 @@ def evaluate(state, player, x, y):
             return 555555555555555555
         if num3_Human >= 2 and num3_Comp == 0 and num3_Comp_Block == 0:
             return -555555555555555555
-        total_Score_Human = 2 * near_By_Human + 70 * num2_Human_Block + 250 * num2_Human + 3000 * num3_Human_Block + 300000 * num3_Human + num4_Human_Block * 8000000
+        total_Score_Human = 2 * near_By_Human + 70 * num2_Human_Block + 250 * num2_Human + 3000 * num3_Human_Block + 300000 * num3_Human + num4_Human_Block * 30000000
         total_Score_Comp = near_By_Comp + 20 * num2_Comp_Block + 100 * num2_Comp + 4000 * num3_Comp_Block + num3_Comp * 30000000
         return total_Score_Comp - total_Score_Human
        
@@ -1066,10 +1066,10 @@ def checkEnd(turnXorO, x, y):
     return False, None, None, None
 
 # Hàm kiểm tra game kết thúc hay chưa
-def gameOver(state, x, y):
+def gameOver(player, x, y):
     if x == -1 or y == -1:
         return False
-    return checkEnd(state, x, y)[0]
+    return checkEnd(HUMAN[0] if player == COMP[0] else COMP[0], x, y)[0]
 # Hàm lấy tọa độ một điểm chưa được chọn ngẫu nhiên
 def get_Point():
     while True:
@@ -1177,7 +1177,7 @@ def minimax(state, depth, player, alpha, beta, x, y):
     else:
         best = [-1, -1, math.inf]
     
-    if depth == 0 or gameOver(state, x, y):
+    if depth == 0 or gameOver(player, x, y):
         sc = evaluate(state, player, x, y)
         return [-1, -1, sc]
     
@@ -1201,10 +1201,6 @@ def minimax(state, depth, player, alpha, beta, x, y):
         state[xx][yy] = player
         score = minimax(state, depth - 1, HUMAN[0] if player == COMP[0] else COMP[0], alpha, beta, xx, yy)
         state[xx][yy] = ' '
-        if player == COMP[0]:
-            store_Comp[numMark] = [-1, -1]
-        else:
-            store_Human[numMark] = [-1, -1]
         score[0], score[1] = xx, yy
 
         if player == COMP[0]:
@@ -1219,6 +1215,10 @@ def minimax(state, depth, player, alpha, beta, x, y):
         if beta <= alpha:
             break  # Cắt tỉa alpha - beta
 
+    if player == COMP[0]:
+        store_Comp[numMark] = [-1, -1]
+    else:
+        store_Human[numMark] = [-1, -1]
     return best
 
 # Hàm trả về nước đi tối ưu cho AI
