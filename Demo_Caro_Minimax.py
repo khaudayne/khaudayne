@@ -14,14 +14,14 @@ def on_leave(e):
     e.widget.config(bg='white', fg = 'white')
 
 # Hàm heuristic h(n) đánh giá giá trị của bàn cờ:
-def evaluate(state, player, x, y):
+def evaluate(player, x, y):
     # Nếu hết cờ
     if x != -1 and y != -1 and checkEnd(HUMAN[0] if player == COMP[0] else COMP[0], x, y)[0]:
         # Trả về vô cùng nếu máy thắng
         if player == HUMAN[0]:
-            return math.inf
+            return 999999999999999999999999999999999
         else:
-            return -math.inf # Trả về âm vô cùng nếu người thắng
+            return -999999999999999999999999999999999 # Trả về âm vô cùng nếu người thắng
     # Tổng điểm của máy
     total_Score_Comp = 0
     # Tổng điểm của người
@@ -1203,7 +1203,7 @@ def minimax(state, depth, player, alpha, beta, x, y):
         best = [-1, -1, math.inf]
     # Nếu độ sâu giảm tới 0 ( đoán trước tối đa depth nước đi ) hoặc bàn cờ đã hết cờ thì trả về giá trị của bàn cờ
     if depth == 0 or gameOver(player, x, y):
-        sc = evaluate(state, player, x, y)
+        sc = evaluate(player, x, y)
         return [-1, -1, sc]
     # numMark là biến đánh dấu vị trí để có thể lưu trữ nước đi cho player tại vị trí đầu tiên tìm thấy [-1, -1] trong store_
     numMark = 0
@@ -1214,7 +1214,10 @@ def minimax(state, depth, player, alpha, beta, x, y):
         while store_Human[numMark] != [-1, -1]:
             numMark += 1
     # Duyệt hết các nước có thể đi, danh sách các điểm có thể đi lấy được qua hàm emptyBox(state)
-    for box in emptyBox(state):
+    emptyB = emptyBox(state)
+    if len(emptyB) == 0:
+        return [-1, -1, 0]
+    for box in emptyB:
         xx, yy = box[0], box[1]
         # Bỏ qua nếu tọa độ đưa vào đủ " tệ "
         if checkBad_Point(xx, yy):
@@ -1229,6 +1232,11 @@ def minimax(state, depth, player, alpha, beta, x, y):
         score = minimax(state, depth - 1, HUMAN[0] if player == COMP[0] else COMP[0], alpha, beta, xx, yy)
         # Bỏ đánh dấu bàn cờ trong quay lui
         state[xx][yy] = ' '
+        # Xóa nước đi vừa rồi của player khỏi store_
+        if player == COMP[0]:
+            store_Comp[numMark] = [-1, -1]
+        else:
+            store_Human[numMark] = [-1, -1]
         score[0], score[1] = xx, yy
 
         # Cập nhật alpha và beta sau mỗi lần tìm kiếm trong 1 nhánh của minimax
@@ -1243,11 +1251,6 @@ def minimax(state, depth, player, alpha, beta, x, y):
 
         if beta <= alpha:
             break  # Cắt tỉa alpha - beta
-    # Xóa nước đi vừa rồi của player khỏi store_
-    if player == COMP[0]:
-        store_Comp[numMark] = [-1, -1]
-    else:
-        store_Human[numMark] = [-1, -1]
     return best
 
 # Hàm trả về nước đi tối ưu cho AI
@@ -1305,6 +1308,14 @@ def clicked(btn, x, y):
         return
     if checkChessT[x][y]:
         return
+    buttons = fr.winfo_children()
+    if btn_Clicked[0] == -1:
+        btn_Clicked[0] = x
+        btn_Clicked[1] = y
+    else:
+        buttons[btn_Clicked[0] * colT[0] + btn_Clicked[1]].config(bg = 'white')
+        btn_Clicked[0] = x
+        btn_Clicked[1] = y
     # Đánh dấu vị trí bàn cờ trên giao diện đã được chọn
     checkChessT[x][y] = True
     # Bổ sung nước đi vừa đánh vào store_ của player tương ứng
@@ -1318,7 +1329,7 @@ def clicked(btn, x, y):
         btn.unbind("<Leave>")
         btn.unbind("<Enter>")
         chessT[x][y] = 'x'
-        btn.config(text = 'X',font=('Arial',15), bg = 'white', fg = 'black')
+        btn.config(text = 'X',font=('Arial',15), bg = '#FFEFD5', fg = 'red')
 
         # Kiểm tra điều kiện thắng của X
         checkE, typeWin, sT, eN = checkEnd('x', x, y)
@@ -1398,7 +1409,7 @@ def clicked(btn, x, y):
         btn.unbind("<Leave>")
         btn.unbind("<Enter>")
         chessT[x][y] = 'o'
-        btn.config(text = 'O',font=('Arial',15), bg = 'white', fg = 'black')
+        btn.config(text = 'O',font=('Arial',15), bg = '#FFEFD5', fg = 'blue')
 
         # Kiểm tra điều kiện thắng của O
         checkE, typeWin, sT, eN = checkEnd('o', x, y)
@@ -1551,7 +1562,8 @@ HUMAN = ['x']
 # Biến lưu trữ vị trí đã đi qua của người và máy
 store_Comp = [[-1, -1] for i in range(1000)]
 store_Human = [[-1, -1] for i in range(1000)]
-
+# Biến lưu trữ button vừa chọn
+btn_Clicked = [-1, -1]
 ### Xây dựng giao diện game 
 # Widget root cho giao diện
 parent = Tk()
